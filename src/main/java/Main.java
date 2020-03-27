@@ -24,8 +24,6 @@ import com.google.gson.JsonSyntaxException;
  * the code is the primary source of truth. 
  * Meaning that it's possible for the documentation to be out of date 
  * But the code will always be current. 
- *
- *
  */
 public class Main {
 
@@ -47,8 +45,8 @@ public class Main {
     public static Object addMenu( Request req, Response res) {
   
         Menu menu = Menu.menuFromJson( req.body() );   
-        menu.save(); 
         System.out.println(menu.toString());
+        //menu.save(); 
 
         if (menu.isEmpty()) {
             res.status(200);
@@ -58,6 +56,8 @@ public class Main {
 
         return res; 
     }
+
+
 
     public static void initRouter(){
 
@@ -94,16 +94,18 @@ public class Main {
     public static void startServer() {
 
         port(80);
-		staticFiles.location("/public/build"); 
+        // port(443); // HTTPS port
+		staticFiles.location("/public/build");
+        //secure("/home/ubuntu/env/keystore.jks","autogarcon", null, null); // HTTPS key configuration for spark
         initRouter(); 
-        //DBUtil.connectToDB(); 
-
-        //Menu test = new Menu( 1, 1); 
+        DBUtil.connectToDB(); 
     }
 
 	public static void main(String[] args) {
-        startServer(); 
 
+        startServer(); 
+        Menu test = new Menu(7, 5); 
+        System.out.printf("test data: %s\n", test.toString() ); 
 	}
 }
 
