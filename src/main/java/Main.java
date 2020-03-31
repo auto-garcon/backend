@@ -47,15 +47,31 @@ public class Main {
         Menu menu = Menu.menuFromJson( req.body() );   
 
         System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
-        menu.save(); 
+        boolean saved = menu.save(); 
 
-        if (!menu.isDefault()) {
+        if (!menu.isDefault() || !saved) {
             res.status(200);
             return "Successfully recieved menu.";
         } else {
             res.status(500); 
             return "Error parsing menu"; 
         }
+    }
+
+
+    public static Object getMenu( Request req, Response res ){
+
+            System.out.println( "HELLO " + req.params(":restaurantid")); 
+        try{ 
+            int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+            res.status(200); 
+            return Menu.allMenus( restaurantID ); 
+        } catch( NumberFormatException nfe){
+            res.status(400); 
+            return "Failed to parse restaurantID as an integer."; 
+        }
+
+
     }
 
 
@@ -74,7 +90,7 @@ public class Main {
                 });
             });
             path("/restaurant", () -> {
-                path("/:resturantid", () -> {
+                path("/:restaurantid", () -> {
                     get("", Main::endpointNotImplemented); 
                     get("/orders", Main::endpointNotImplemented);
                     get("/tables", Main::endpointNotImplemented); 
@@ -82,7 +98,7 @@ public class Main {
                     post("/orders/submit", Main::endpointNotImplemented); 
                     post("orders/complete", Main::endpointNotImplemented); 
                     path("/menu", () -> {
-                        get("", Main::endpointNotImplemented ); 
+                        get("", Main::getMenu, new JsonTransformer() ); 
                         post("/add", "application/json", Main::addMenu); 
                         post("/remove", Main::endpointNotImplemented); 
                     });
