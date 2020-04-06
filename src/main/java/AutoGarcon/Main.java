@@ -1,10 +1,12 @@
 package AutoGarcon; 
-import static spark.Spark.*; 
+import static spark.Spark.*;
+
+import com.google.gson.*;
 import spark.Request;
 import spark.Response;
-import com.google.gson.JsonSyntaxException;
+import spark.Route;
 
-
+import java.lang.reflect.Type;
 
 
 /**
@@ -33,14 +35,16 @@ public class Main {
      */
     public static Object endpointNotImplemented( Request req, Response res ){
         res.status(501); 
-        return res; 
+        return "Endpoint Not Implemented"; 
     }
 
     public static Object serveStatic(Request req, Response res) {
         res.type("text/html");
         res.redirect("index.html", 201);
-        return res;
+        return "";
     }
+
+
 
     public static Object addMenu( Request req, Response res) {
   
@@ -49,19 +53,18 @@ public class Main {
         System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
         boolean saved = menu.save(); 
 
-        if (!menu.isDefault() || !saved) {
+        if (!menu.isDefault() && saved) {
             res.status(200);
             return "Successfully recieved menu.";
         } else {
             res.status(500); 
-            return "Error parsing menu"; 
+            return "Error recieving menu"; 
         }
     }
 
 
     public static Object getMenu( Request req, Response res ){
 
-            System.out.println( "HELLO " + req.params(":restaurantid")); 
         try{ 
             int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
             res.status(200); 
@@ -70,11 +73,22 @@ public class Main {
             res.status(400); 
             return "Failed to parse restaurantID as an integer."; 
         }
-
-
     }
 
+    public static Object addUser( Request req, Response res) {
 
+        User user = User.userFromJson( req.body() ); 
+        boolean saved = user.save(); 
+
+        if( !user.isDefault() && saved ){
+            res.status(200); 
+            return "Successfully recieved user."; 
+        } else {
+            res.status(500); 
+            return "Error receiving User"; 
+        }
+
+    }
 
     public static void initRouter(){
 
@@ -82,7 +96,10 @@ public class Main {
 
         path("/api", () -> {
             path("/users", () -> {
-                post("/newuser",  Main::endpointNotImplemented ); 
+                before((request, response) -> {
+
+                });
+                post("/newuser", "application/json", Main::addUser, new JsonTransformer() );
                 path("/:userid", () -> {
                     get("", Main::endpointNotImplemented );
                     get("/favorites", Main::endpointNotImplemented);
@@ -115,7 +132,7 @@ public class Main {
 		staticFiles.location("/public/build");
         //secure("/home/ubuntu/env/keystore.jks","autogarcon", null, null); // HTTPS key configuration for spark
         initRouter(); 
-        DBUtil.connectToDB(); 
+        DBUtil.connectToDB();
     }
 
 	public static void main(String[] args) {
