@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List; 
 import java.util.Arrays; 
 
-
 /**
  * DBUtil: Utility functions for interacting with the datbase.
  * @author Tyler Beverley
@@ -115,12 +114,9 @@ public class DBUtil {
             stmt.setNString("menuName", menu.getName() ); 
             stmt.setInt("startTime", menu.getTimeRanges()[0].getStartTime()); 
             stmt.setInt("endTime", menu.getTimeRanges()[0].getEndTime() );  
-            stmt.registerOutParameter("menuID", Types.INTEGER); 
 
             result = stmt.executeQuery(); 
-            
-            //get output param 
-            menuID = stmt.getInt("menuID"); 
+            menuID = result.getInt( "createdMenuID");
             menu.setMenuID( menuID ); 
         }
         catch(SQLException e){ 
@@ -146,6 +142,7 @@ public class DBUtil {
             stmt.setNString("iName", menuItem.getName()); 
             stmt.setString("idesc", menuItem.getDescription()); 
             stmt.setString("iCategory", menuItem.getCategory()); 
+            stmt.setInt("calories", 0); 
 
             List<MenuItem.Allergen> allergens = Arrays.asList(menuItem.getAllergens());
             if( allergens.contains( MenuItem.Allergen.MEAT ) ){
@@ -273,7 +270,7 @@ public class DBUtil {
         String baseURL, userName, password, connString;
         boolean isHost;
 
-        baseURL = "jdbc:mysql://%s:%s@%s/AutoGarcon";
+        baseURL = "jdbc:mysql://%s:%s@%s/AutoGarcon&useSSL=false";
         userName = getUserName();
         password = getPass();
         isHost = isHost();
