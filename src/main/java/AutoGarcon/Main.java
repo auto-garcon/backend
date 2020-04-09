@@ -63,7 +63,7 @@ public class Main {
     }
 
 
-    public static Object getMenu( Request req, Response res ){
+    public static Object getAllMenu( Request req, Response res ){
 
         try{ 
             int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
@@ -82,12 +82,44 @@ public class Main {
 
         if( !user.isDefault() && saved ){
             res.status(200); 
-            return "Successfully recieved user."; 
+            return user;  
         } else {
             res.status(500); 
             return "Error receiving User"; 
         }
+    }
 
+    public static Object getRestaurant( Request req, Response res ){
+
+        try {
+            int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+            Restaurant restaurant = new Restaurant( restaurantID );  
+            return restaurant; 
+
+        } catch( NumberFormatException nfe){
+            res.status(400); 
+            return "Failed to parse restaurantID as an integer.";
+        }
+    }
+
+    public static Object addRestaurant( Request req, Response res ){
+        Restaurant restaurant = Restaurant.restaurantFromJson( req.body() ); 
+
+        if( !restaurant.isDefault() ){
+            boolean saved = restaurant.save(); 
+            if( saved ){
+                res.status(200); 
+                return "Successfully saved new restuarant"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to save new restaurant"; 
+            }
+        }
+        else {
+            res.status(400); 
+            return "Failed to parse out request for adding a restaurant"; 
+        }
     }
 
     public static void initRouter(){
@@ -96,9 +128,6 @@ public class Main {
 
         path("/api", () -> {
             path("/users", () -> {
-                before((request, response) -> {
-
-                });
                 post("/newuser", "application/json", Main::addUser, new JsonTransformer() );
                 path("/:userid", () -> {
                     get("", Main::endpointNotImplemented );
@@ -107,15 +136,16 @@ public class Main {
                 });
             });
             path("/restaurant", () -> {
+                post("/add", Main::addRestaurant ); 
                 path("/:restaurantid", () -> {
-                    get("", Main::endpointNotImplemented); 
+                    get("", Main::getRestaurant); 
                     get("/orders", Main::endpointNotImplemented);
                     get("/tables", Main::endpointNotImplemented); 
                     post("/sitdown",Main::endpointNotImplemented); 
                     post("/orders/submit", Main::endpointNotImplemented); 
-                    post("orders/complete", Main::endpointNotImplemented); 
+                    post("/orders/complete", Main::endpointNotImplemented); 
                     path("/menu", () -> {
-                        get("", Main::getMenu, new JsonTransformer() ); 
+                        get("", Main::getAllMenu, new JsonTransformer() ); 
                         post("/add", "application/json", Main::addMenu); 
                         post("/remove", Main::endpointNotImplemented); 
                     });

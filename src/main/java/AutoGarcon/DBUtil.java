@@ -23,6 +23,36 @@ public class DBUtil {
     private Connection connection;
 
 
+
+    /**
+     * getRestaurant = gets the restaurant with the specified restaurantID.
+     * @param restaurantID 
+     * @return ResultSet - SQL result representing feilds for a restaurant. 
+     */
+    public static ResultSet getRestaurant( int restaurantID ) {
+
+        ResultSet result = null;
+        Connection c = connectToDB();
+        Statement stmt;
+        try {
+            String query = String.format( "SELECT " + 
+                    "restaurantId, restaurantName, description, " + 
+                    "address, salesTax, city, state, zipCode, country " + 
+                    "FROM Restaurant where restaurantId = %d;", restaurantID 
+            ); 
+            stmt = c.createStatement(); 
+            result = stmt.executeQuery( query );  
+            result.beforeFirst(); 
+            return result;
+
+        } catch( SQLException e ){
+            System.out.printf("Failed to query for restaurant. restaurantID %d .\n" +
+                    "Exception: %s\n", restaurantID, e.toString() );
+        }
+        return result; 
+    }
+
+
     /**
      * getMenu: Gets all the menus offered by a restaurant.
      * @param restaurantID the id of the restaurant.
@@ -45,7 +75,6 @@ public class DBUtil {
         } catch( SQLException e ){
             System.out.printf("Failed to exectue GetMenusByRestaurantId stored procedure.\n" +
                     "Exception: " + e.toString() );
-            System.exit(1);
         }
         return result;
     }
@@ -90,6 +119,40 @@ public class DBUtil {
             }
         }
         return menus;
+    }
+
+
+    /**
+     *
+     *
+     *
+     */
+    public static boolean saveRestaurant( Restaurant restaurant ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        ResultSet result; 
+
+        try{
+            stmt = c.prepareCall("{call CreateNewRestaurant( ?,?,?,?,?,?,?,? )}"); 
+            stmt.setNString("rName", restaurant.getName() ); 
+            stmt.setNString("rDescr", restaurant.getDescription() ); 
+            stmt.setNString("rAddress", restaurant.getAddress() ); 
+            stmt.setObject("salesTax", restaurant.getSalesTax(), Types.DECIMAL, 2 ); 
+            stmt.setNString("city", restaurant.getCity() ); 
+            stmt.setNString("state", restaurant.getState() );  
+            stmt.setInt("rZip", restaurant.getZip() ); 
+            stmt.setNString("rCountry", restaurant.getCountry() ); 
+
+            result = stmt.executeQuery(); 
+            //int restaurantID = result.getInt(""); 
+            return true; 
+        }
+        catch( SQLException e ) {
+            System.out.printf("SQL Exception while executing CreateNewMenu.\n" + 
+                    "Exception: %s\n", e.toString() 
+            );
+        }
+        return false; 
     }
 
     /**
@@ -270,7 +333,7 @@ public class DBUtil {
         String baseURL, userName, password, connString;
         boolean isHost;
 
-        baseURL = "jdbc:mysql://%s:%s@%s/AutoGarcon&useSSL=false";
+        baseURL = "jdbc:mysql://%s:%s@%s/AutoGarcon";
         userName = getUserName();
         password = getPass();
         isHost = isHost();
