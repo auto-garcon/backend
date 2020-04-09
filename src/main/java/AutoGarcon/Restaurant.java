@@ -1,11 +1,9 @@
 package AutoGarcon;
-
 import com.google.gson.Gson; 
 import com.google.gson.JsonSyntaxException; 
 import javax.swing.text.html.Option;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.sql.SQLException; 
+import java.sql.ResultSet; 
 
 
 /**
@@ -18,9 +16,15 @@ public class Restaurant {
 
     private int restaurantID;
     private String restaurantName;
-    private String restaurantAddress;
-    private List<Menu> availableMenus;
-    private List<Table> restaurantTables;
+    private int[] availableMenus;
+    private transient Table[] restaurantTables;
+    private String description; 
+    private String address;  
+    private String city; 
+    private int zipCode;
+    private String country; 
+    private String state; 
+
 
 
     /**
@@ -32,10 +36,7 @@ public class Restaurant {
     public Restaurant(int restaurantID, String restaurantName, String restaurantAddress) {
         this.restaurantID = restaurantID;
         this.restaurantName = restaurantName;
-        this.restaurantAddress = restaurantAddress;
-        this.availableMenus = new ArrayList<>();
-        this.restaurantTables = new ArrayList<>();
-
+        this.address = address;
     }
 
     /**
@@ -45,10 +46,39 @@ public class Restaurant {
     public Restaurant(){
         this.restaurantID = -1; 
         this.restaurantName = "Default Restaurant"; 
-        this.restaurantAddress = ""; 
+        this.address = ""; 
     }
 
-    public Restaurant RestaurantFromJson( String body){
+    public Restaurant( int restaurantID ){
+        ResultSet result = DBUtil.getRestaurant( restaurantID ); 
+
+        //if result is null return a default restaurant. 
+        if( result == null ){
+            this.restaurantID = -1; 
+            this.restaurantName = "Default Restaurant"; 
+            this.address = ""; 
+        }
+
+        try{
+            result.next(); 
+            this.restaurantID = result.getInt("restaurantID"); 
+            this.restaurantName = result.getString("restaurantName");  
+            this.description = result.getString("description"); 
+            this.address = result.getString("address"); 
+            this.city = result.getString("city");
+            this.state = result.getString("state"); 
+            this.zipCode = result.getInt("zipCode"); 
+            this.country = result.getString("country"); 
+
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to get the required fields while creating a restaurant Object.\n" + 
+                   "Exception: %s.\n", e.toString() );
+
+        }
+    }
+
+    public static Restaurant restaurantFromJson( String body){
 
         Gson gson = new Gson(); 
         Restaurant restaurant = new Restaurant(); 
@@ -62,60 +92,72 @@ public class Restaurant {
         return restaurant; 
     }
 
-    /**
-     *
-     * @return The restaurantID.
-     */
+
+    public boolean isDefault(){
+        return this.restaurantName.equals("Default Restaurant"); 
+    }
+
+    public boolean save(){
+        return DBUtil.saveRestaurant( this ); 
+        // save logo. 
+    }
+
     public int getRestaurantID() {
-        return restaurantID;
+        return this.restaurantID;
     }
 
-    /**
-     *
-     * @return All restaurant menus.
-     */
-    public List<Menu> getAvailableMenus() { return availableMenus; }
-
-    /**
-     *
-     * @return List of restaurant tables.
-     */
-    public List<Table> getRestaurantTables() { return restaurantTables; }
-    /**
-     *
-     * @param menuId: ID of the menu
-     * @return The menu if it was found
-     */
-    public Optional<Menu> getMenuById(int menuId) {
-        return Optional.empty();
+    public int[] getAvailableMenus() { 
+        return this.availableMenus; 
     }
 
-    /**
-     *
-     * @return Restaurant name.
-     */
-    public String getRestaurantName() {
-        return restaurantName;
+    public Table[] getRestaurantTables() { 
+        return this.restaurantTables; 
+    }
+    
+    public String getName() {
+        return this.restaurantName;
     }
 
-    /**
-     *
-     * @return Restaurant address as a string.
-     */
-    public String getRestaurantAddress() {
-        return restaurantAddress;
+    public String getDescription() {
+        return this.description;  
     }
 
-    /**
-     *
-     * @return String representation of a Restaurant.
-     */
+    public String getAddress() {
+        return this.address; 
+    }
+
+    public String getCity() {
+        return this.city; 
+    }
+
+    public String getState(){
+        return this.state; 
+    }
+
+    public int getZip(){
+        return this.zipCode; 
+    }
+
+    public String getCountry() {
+        return this.country; 
+    }
+
+    public float getSalesTax(){
+        return this.getSalesTax(); 
+    }
+
+
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("restaurantID: " + this.getRestaurantID() + "\n");
-        str.append("restaurantName: " + this.getRestaurantName()+ "\n");
-        str.append("restaurantAddress: " + this.getRestaurantAddress() + "\n");
+        str.append("restaurantName: " + this.getName()+ "\n");
+        str.append("description: " + this.getDescription() + "\n" ); 
+        str.append("restaurantAddress: " + this.getAddress() + "\n");
+        str.append("city" + this.getState() + "\n"); 
+        str.append("state: " + this.getState() + "\n"); 
+        str.append("zipcode: " + Integer.toString(this.getZip()) ); 
+        str.append("country: " + this.getCountry() ); 
         return str.toString();
     }
 
-} // Class
+} 

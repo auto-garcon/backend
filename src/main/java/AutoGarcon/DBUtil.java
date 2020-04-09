@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.List; 
 import java.util.Arrays; 
 
-
 /**
  * DBUtil: Utility functions for interacting with the datbase.
  * @author Tyler Beverley
@@ -22,6 +21,36 @@ public class DBUtil {
 
     public final static String HOST_URL = "auto-garcon-database.cd4hzqa9i8mi.us-east-1.rds.amazonaws.com";
     private Connection connection;
+
+
+
+    /**
+     * getRestaurant = gets the restaurant with the specified restaurantID.
+     * @param restaurantID 
+     * @return ResultSet - SQL result representing feilds for a restaurant. 
+     */
+    public static ResultSet getRestaurant( int restaurantID ) {
+
+        ResultSet result = null;
+        Connection c = connectToDB();
+        Statement stmt;
+        try {
+            String query = String.format( "SELECT " + 
+                    "restaurantId, restaurantName, description, " + 
+                    "address, salesTax, city, state, zipCode, country " + 
+                    "FROM Restaurant where restaurantId = %d;", restaurantID 
+            ); 
+            stmt = c.createStatement(); 
+            result = stmt.executeQuery( query );  
+            result.beforeFirst(); 
+            return result;
+
+        } catch( SQLException e ){
+            System.out.printf("Failed to query for restaurant. restaurantID %d .\n" +
+                    "Exception: %s\n", restaurantID, e.toString() );
+        }
+        return result; 
+    }
 
 
     /**
@@ -46,7 +75,6 @@ public class DBUtil {
         } catch( SQLException e ){
             System.out.printf("Failed to exectue GetMenusByRestaurantId stored procedure.\n" +
                     "Exception: " + e.toString() );
-            System.exit(1);
         }
         return result;
     }
@@ -93,6 +121,40 @@ public class DBUtil {
         return menus;
     }
 
+
+    /**
+     *
+     *
+     *
+     */
+    public static boolean saveRestaurant( Restaurant restaurant ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        ResultSet result; 
+
+        try{
+            stmt = c.prepareCall("{call CreateNewRestaurant( ?,?,?,?,?,?,?,? )}"); 
+            stmt.setNString("rName", restaurant.getName() ); 
+            stmt.setNString("rDescr", restaurant.getDescription() ); 
+            stmt.setNString("rAddress", restaurant.getAddress() ); 
+            stmt.setObject("salesTax", restaurant.getSalesTax(), Types.DECIMAL, 2 ); 
+            stmt.setNString("city", restaurant.getCity() ); 
+            stmt.setNString("state", restaurant.getState() );  
+            stmt.setInt("rZip", restaurant.getZip() ); 
+            stmt.setNString("rCountry", restaurant.getCountry() ); 
+
+            result = stmt.executeQuery(); 
+            //int restaurantID = result.getInt(""); 
+            return true; 
+        }
+        catch( SQLException e ) {
+            System.out.printf("SQL Exception while executing CreateNewMenu.\n" + 
+                    "Exception: %s\n", e.toString() 
+            );
+        }
+        return false; 
+    }
+
     /**
      * saveMenu: Saves the passed menu object to the database. 
      * Inserting into the database will give us a menuID to use, so 
@@ -115,12 +177,9 @@ public class DBUtil {
             stmt.setNString("menuName", menu.getName() ); 
             stmt.setInt("startTime", menu.getTimeRanges()[0].getStartTime()); 
             stmt.setInt("endTime", menu.getTimeRanges()[0].getEndTime() );  
-            stmt.registerOutParameter("menuID", Types.INTEGER); 
 
             result = stmt.executeQuery(); 
-            
-            //get output param 
-            menuID = stmt.getInt("menuID"); 
+            menuID = result.getInt( "createdMenuID");
             menu.setMenuID( menuID ); 
         }
         catch(SQLException e){ 
@@ -146,6 +205,7 @@ public class DBUtil {
             stmt.setNString("iName", menuItem.getName()); 
             stmt.setString("idesc", menuItem.getDescription()); 
             stmt.setString("iCategory", menuItem.getCategory()); 
+            stmt.setInt("calories", 0); 
 
             List<MenuItem.Allergen> allergens = Arrays.asList(menuItem.getAllergens());
             if( allergens.contains( MenuItem.Allergen.MEAT ) ){
