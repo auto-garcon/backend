@@ -23,7 +23,6 @@ public class User {
      * For use in json deserialization. 
      */
     public User(){
-        this.userID = -1;
         this.firstName = "Default User";
         this.lastName = "";
         this.email = "";
@@ -74,8 +73,7 @@ public class User {
             System.out.printf("Failed to deserialize the request data into a User Object.\n" +
                     "Request body: %s.\n Exception: %s\n", body, e.toString() );
         }
-
-        return user;
+        return user; 
     }
 
     public boolean save() { return DBUtil.addUser(this);}
