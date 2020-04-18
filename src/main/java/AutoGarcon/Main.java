@@ -44,8 +44,6 @@ public class Main {
         return "";
     }
 
-
-
     public static Object addMenu( Request req, Response res) {
   
         Menu menu = Menu.menuFromJson( req.body() );   
@@ -75,18 +73,32 @@ public class Main {
         }
     }
 
-    public static Object addUser( Request req, Response res) {
+    public static Object addUser(User user, Response res ) {
 
-        User user = User.userFromJson( req.body() ); 
         boolean saved = user.save(); 
 
         if( !user.isDefault() && saved ){
             res.status(200); 
-            return user;  
+            return user.getUserID();  
         } else {
             res.status(500); 
             return "Error receiving User"; 
         }
+    }
+
+    public static Object signIn( Request req, Response res ){
+
+        User user = User.userFromJson( req.body() );
+        int userID = DBUtil.getUserID( user ); 
+        System.out.println( user.toString() ); 
+
+        if(userID == -1 ){
+            return addUser( user, res ); 
+        }
+        else {
+            res.status(200); 
+        }
+        return userID; 
     }
 
     public static Object getRestaurant( Request req, Response res ){
@@ -128,7 +140,7 @@ public class Main {
 
         path("/api", () -> {
             path("/users", () -> {
-                post("/newuser", "application/json", Main::addUser, new JsonTransformer() );
+                post("/signin", "application/json", Main::signIn, new JsonTransformer() );
                 path("/:userid", () -> {
                     get("", Main::endpointNotImplemented );
                     get("/favorites", Main::endpointNotImplemented);

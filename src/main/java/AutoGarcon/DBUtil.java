@@ -23,7 +23,6 @@ public class DBUtil {
     private Connection connection;
 
 
-
     /**
      * getRestaurant = gets the restaurant with the specified restaurantID.
      * @param restaurantID 
@@ -304,6 +303,29 @@ public class DBUtil {
         return result;
     }
 
+    public static int getUserID( User user ){
+        ResultSet result = null; 
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        int userID = -1; 
+
+        try{
+            stmt = c.prepareCall("{call GetUserIdByEmail(?)}" ); 
+            stmt.setNString("emailAddress", user.getEmail() );
+            result = stmt.executeQuery(); 
+
+            result.next(); 
+            userID = result.getInt("userID"); 
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing AddUser.\n" +
+                    "Exception: %s\n", e.toString() );
+            userID = -1; 
+        }
+        return userID; 
+    }
+
+
     public static boolean addUser(User user) {
 
         ResultSet result = null;
@@ -318,6 +340,9 @@ public class DBUtil {
             stmt.setNString("token", user.getToken());
 
             result = stmt.executeQuery();
+            result.next();
+            int userID = result.getInt("newUserID"); 
+            user.setUserID( userID ); 
             return true;
 
         } catch (SQLException e) {
