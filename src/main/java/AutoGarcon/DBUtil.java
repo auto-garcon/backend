@@ -3,7 +3,6 @@ import java.sql.*;
 import java.io.File; 
 import java.util.List; 
 import java.util.Arrays; 
-
 /**
  * DBUtil: Utility functions for interacting with the datbase.
  * @author Tyler Beverley
@@ -23,8 +22,7 @@ public class DBUtil {
     private Connection connection;
 
 
-    /**
-     * getRestaurant = gets the restaurant with the specified restaurantID.
+    /** getRestaurant = gets the restaurant with the specified restaurantID.
      * @param restaurantID 
      * @return ResultSet - SQL result representing feilds for a restaurant. 
      */
@@ -204,7 +202,7 @@ public class DBUtil {
             stmt.setNString("iName", menuItem.getName()); 
             stmt.setString("idesc", menuItem.getDescription()); 
             stmt.setString("iCategory", menuItem.getCategory()); 
-            stmt.setInt("calories", 0); 
+            stmt.setInt("calories", menuItem.getCalories() ); 
 
             List<MenuItem.Allergen> allergens = Arrays.asList(menuItem.getAllergens());
             if( allergens.contains( MenuItem.Allergen.MEAT ) ){

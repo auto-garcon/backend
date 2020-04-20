@@ -35,6 +35,7 @@ public class MenuItem {
     private String name; 
     private float price; 
     private transient File image; 
+    private int calories; 
 
 
     /**
@@ -77,6 +78,8 @@ public class MenuItem {
             this.name = rs.getString("itemName"); 
             this.category = rs.getString("category"); 
             this.description = rs.getString("description"); 
+            this.price = rs.getFloat("price"); 
+            this.calories = rs.getInt("calories");
             
             if( rs.getBoolean("gluten") ){
                 allergens.add( Allergen.GLUTEN );
@@ -157,6 +160,10 @@ public class MenuItem {
 
     public float getPrice() {
         return this.price; 
+    }
+    
+    public int getCalories() {
+        return this.calories; 
     }
     
 
