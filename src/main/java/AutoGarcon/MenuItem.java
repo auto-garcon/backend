@@ -28,23 +28,26 @@ public class MenuItem {
     }
 
     private int itemID; 
+    private int menuID; 
     private Allergen allergens[]; 
     private String category; 
     private String description; 
-    private String imageBytes;
+    private transient String imageBytes;
     private String name; 
     private float price; 
     private transient File image; 
-
+    private int calories; 
+    private String imageURL; 
 
     /**
      * menuItemFromJson - create a menuItem from a JSON string. 
      * @param body - the string containing the menuItem in JSON format. 
      * @return a MenuItem with the feilds conatined from the JSON string. 
      */
-    public static MenuItem menuItemFromJson( String body ) {
+    public static MenuItem menuItemFromJson( String body, int menuID ) {
         Gson gson = new Gson(); 
         MenuItem item = new MenuItem(); 
+        item.setImageURL( menuID, item.getItemID() ); 
 
         try { 
             item = gson.fromJson( body, MenuItem.class );
@@ -60,6 +63,7 @@ public class MenuItem {
      */
     public MenuItem(){
         this.itemID = -1; 
+        this.menuID = -1; 
         this.allergens = new Allergen[0]; 
     }
 
@@ -68,15 +72,19 @@ public class MenuItem {
      * @param ResultSet -  a sql result set from a database query to turn into a MenuItem object. 
      * @return a full menuItem object. 
      */
-    public MenuItem( ResultSet rs ){
+    public MenuItem( ResultSet rs, int menuID ){
 
         ArrayList<Allergen> allergens = new ArrayList<Allergen>(); 
+        this.menuID = menuID; 
 
         try{ 
             this.itemID = rs.getInt( "itemID" );  
             this.name = rs.getString("itemName"); 
             this.category = rs.getString("category"); 
             this.description = rs.getString("description"); 
+            this.price = rs.getFloat("price"); 
+            this.calories = rs.getInt("calories");
+            this.imageURL = ImageUtil.getImageURL( menuID, this.itemID ); 
             
             if( rs.getBoolean("gluten") ){
                 allergens.add( Allergen.GLUTEN );
@@ -113,7 +121,8 @@ public class MenuItem {
 
         try { 
             while( rs.next() ){
-                MenuItem mItem = new MenuItem( rs ); 
+                MenuItem mItem = new MenuItem( rs, menuID ); 
+
                 result.add( mItem ); 
             }
         } catch( SQLException e ){
@@ -124,6 +133,7 @@ public class MenuItem {
         return result.toArray( new MenuItem[  result.size() ] );
     }
 
+    //@depreciated 
     public void saveImage( int menuID ){
         if( this.imageBytes == null ){
             return; 
@@ -135,8 +145,16 @@ public class MenuItem {
         this.image = ImageUtil.saveImage( menuID, this.itemID, bytes);   
     }
 
+    public void setMenuID( int id ) {
+        this.menuID = id; 
+    }
+
     public void setItemID( int id ) {
         this.itemID = id; 
+    }
+    
+    public int getItemID(){
+        return this.itemID; 
     }
 
     public String getName() {
@@ -157,6 +175,14 @@ public class MenuItem {
 
     public float getPrice() {
         return this.price; 
+    }
+    
+    public int getCalories() {
+        return this.calories; 
+    }
+
+    public void setImageURL(int menuID, int itemID) {
+        this.imageURL = ImageUtil.getImageURL(menuID, itemID); 
     }
     
 

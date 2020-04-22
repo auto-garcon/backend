@@ -2,6 +2,9 @@ package AutoGarcon;
 import java.io.File;
 import java.io.FileOutputStream; 
 import java.io.IOException;
+import java.io.InputStream; 
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Base64; 
 import com.google.gson.JsonElement; 
 import com.google.gson.JsonPrimitive;
@@ -11,6 +14,23 @@ public class ImageUtil {
 
 
     public static final String basePath = "./images/menus/";
+
+
+    public static boolean saveImage( int menuID, int menuItemID, InputStream is ){
+        String path = String.format( basePath + "%d/%d", menuID, menuItemID );
+        createMenuFolder( menuID ); 
+
+        File f = new File( path ); 
+
+        try{
+            Files.copy( is, f.toPath(), StandardCopyOption.REPLACE_EXISTING ); 
+        } catch( IOException ioe ){
+            System.out.printf("IOException while trying to save an image.\n" + 
+                    "Exception: %s\n", ioe.toString() );
+        }
+
+        return true; 
+    }
 
     public static File saveImage( int menuID, int menuItemID, byte[] bytes ){
 
@@ -36,9 +56,14 @@ public class ImageUtil {
 
         if( !image.exists() ){
             System.out.printf("Failed to get the requested image for: " + 
-                    "MenuID: %d, MenuItem: %d\n", menuID, menuItemID ); 
+                    "MenuID: %d, MenuItem: %d\n", menuID, menuItemID 
+            ); 
         }
         return image; 
+    }
+
+    public static String getImageURL( int menuID, int menuItemID ){
+        return String.format( basePath + "%d/%d", menuID, menuItemID );
     }
 
     public static void createMenuFolder( int menuID ){
