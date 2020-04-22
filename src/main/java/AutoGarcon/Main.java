@@ -7,6 +7,15 @@ import spark.Response;
 import spark.Route;
 
 import java.lang.reflect.Type;
+import java.io.OutputStream; 
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.File;
+import java.nio.file.Files; 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletException; 
+import javax.servlet.http.HttpServletResponse; 
+import javax.imageio.ImageIO; 
 
 
 /**
@@ -48,7 +57,7 @@ public class Main {
   
         Menu menu = Menu.menuFromJson( req.body() );   
 
-        System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
+        //System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
         boolean saved = menu.save(); 
 
         if (!menu.isDefault() && saved) {
@@ -134,6 +143,76 @@ public class Main {
         }
     }
 
+    public static Object getImage( Request req, Response res ){
+        
+        //res.raw().setContentType("image/png");
+        byte[] data = null;
+
+        try{
+            int menuID = Integer.parseInt( req.params(":menuid") ); 
+            int menuItemID = Integer.parseInt( req.params(":menuitemid") ); 
+
+            HttpServletResponse raw = res.raw();
+            res.header("Content-Disposition", "attachment; filename=image.jpg");
+            //res.type("application/force-download");
+
+            File f = ImageUtil.getImage( menuID, menuItemID );
+            data = Files.readAllBytes( f.toPath() );
+            raw.getOutputStream().write(data);
+            raw.getOutputStream().flush();
+            raw.getOutputStream().close();
+            res.status(200); 
+            return raw; 
+
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse paramaters an integer."; 
+        }
+        catch( IOException ioe ){
+            res.status(500); 
+            System.out.printf("Failed to retreive the requested image. " + 
+                    "Exception: %s\n", ioe.toString()
+            ); 
+            return "IOException occured";
+        }
+    }
+
+
+    public static Object saveImage( Request req, Response res ){
+
+        try{
+            int menuID = Integer.parseInt( req.params(":menuid") ); 
+            int menuItemID = Integer.parseInt( req.params(":menuitemid") ); 
+            InputStream is = req.raw().getPart("uploaded_file").getInputStream();
+            req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
+            boolean saved = ImageUtil.saveImage( menuID, menuItemID, is ); 
+            if( saved ){
+                return "File uploaded";
+            }
+            else{
+                return "Failed to upload the image"; 
+            }
+        }
+        catch( IOException ioe ){
+            res.status(400); 
+            System.out.printf("Failed to get the input stream from the request.\n" + 
+                    "Exception: %s\n", ioe.toString()
+            );
+            return "Failed to get the input stream for the request.";
+        }
+        catch( ServletException se ){
+            res.status(400); 
+            System.out.printf("ServletException ? " + 
+                    "Exception: %s\n", se.toString() 
+            ); 
+            return "Failed to get the multipart request config.";  
+        }
+        catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse paramaters an integer."; 
+        }
+    }
+
     public static void initRouter(){
 
 		get("/", Main::serveStatic);
@@ -162,6 +241,10 @@ public class Main {
                         post("/remove", Main::endpointNotImplemented); 
                     });
                 });
+            });
+            path("/image", () -> {
+                get("/:menuid/:menuitemid", Main::getImage); 
+                post("/:menuid/:menuitemid", Main::saveImage); 
             });
         });
     }
