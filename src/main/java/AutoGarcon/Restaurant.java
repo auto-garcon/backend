@@ -24,7 +24,7 @@ public class Restaurant {
     private int zipCode;
     private String country; 
     private String state; 
-
+    private int numTables; 
 
 
     /**
@@ -146,6 +146,9 @@ public class Restaurant {
         return this.getSalesTax(); 
     }
 
+    public int getNumTables() {
+        return this.numTables; 
+    }
 
     public String toString() {
         StringBuilder str = new StringBuilder();
@@ -157,6 +160,7 @@ public class Restaurant {
         str.append("state: " + this.getState() + "\n"); 
         str.append("zipcode: " + Integer.toString(this.getZip()) ); 
         str.append("country: " + this.getCountry() ); 
+        str.append("numTables; " + Integer.toString(this.getNumTables()) );
         return str.toString();
     }
 
