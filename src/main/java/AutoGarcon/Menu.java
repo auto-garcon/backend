@@ -81,6 +81,11 @@ public class Menu {
         }
     }
 
+    /**
+     * Menu: Create a menu object from sql result. 
+     * @param qresult - the result of the SQL query.
+     * @return A menu object with data from the database.  
+     */
     public Menu( ResultSet qresult ){
 
         try {
@@ -104,7 +109,6 @@ public class Menu {
      * for the specified restaurant. 
      * @param restaurantID the restaurant to get menus for. 
      * @return An array of menus. 
-     *
      */
     public static Menu[] allMenus( int restaurantID ){
 
