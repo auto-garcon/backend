@@ -1,0 +1,9 @@
+{
+    "restaurantName": "test restaurant", 
+    "description":  "this is a json object representing a test restaurant", 
+    "address": "1152 Symphony Lane", 
+    "city": "chaska", 
+    "zipcode": 55318, 
+    "state": "MN", 
+    "country":, "USA", 
+}
