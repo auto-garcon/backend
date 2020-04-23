@@ -3,6 +3,7 @@ import java.sql.*;
 import java.io.File; 
 import java.util.List; 
 import java.util.Arrays; 
+
 /**
  * DBUtil: Utility functions for interacting with the datbase.
  * @author Tyler Beverley
@@ -120,9 +121,11 @@ public class DBUtil {
 
 
     /**
+     * saveRestaurant: saves restaurant info to the database.
+     * @param restaurant - restaurant object to save to the database. 
      *
-     *
-     *
+     * @return true if the restaurant was saved to the database correctly. 
+     * false if otherwise. 
      */
     public static boolean saveRestaurant( Restaurant restaurant ){
         Connection c = connectToDB(); 
@@ -236,12 +239,12 @@ public class DBUtil {
             }
 
             stmt.setObject("iPrice",  menuItem.getPrice(), Types.DECIMAL, 2 ); 
-            stmt.registerOutParameter("menuItemID", Types.INTEGER); 
+            //stmt.registerOutParameter("menuItemID", Types.INTEGER); 
 
             result = stmt.executeQuery(); 
             
             //get output param 
-            int menuItemID = stmt.getInt("menuItemID"); 
+            int menuItemID = stmt.getInt("createdMenuItemID"); 
             menuItem.setItemID( menuItemID ); 
 
         }
