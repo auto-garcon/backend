@@ -10,12 +10,28 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
 
+
+/**
+ * ImageUtil: This class contains utility function 
+ * retaining to the handling of images for menus and menu items. 
+ *
+ * @author Tyler Beverley
+ * @version 0.1
+ * @since 4/23/20
+ */
 public class ImageUtil { 
 
 
     public static final String basePath = "./images/menus/";
 
 
+    /**
+     * saveImage: Saves an image file to the server given an input stream.
+     *
+     * @param menuID - the menuID of the image to be saved. 
+     * @param menuItemID - the menuItemID of the image to be saved. 
+     * @return True if saved correctly, false otherwise. 
+     */
     public static boolean saveImage( int menuID, int menuItemID, InputStream is ){
         String path = String.format( basePath + "%d/%d", menuID, menuItemID );
         createMenuFolder( menuID ); 
@@ -24,12 +40,14 @@ public class ImageUtil {
 
         try{
             Files.copy( is, f.toPath(), StandardCopyOption.REPLACE_EXISTING ); 
+            return true; 
         } catch( IOException ioe ){
             System.out.printf("IOException while trying to save an image.\n" + 
                     "Exception: %s\n", ioe.toString() );
+            return false; 
         }
 
-        return true; 
+
     }
 
     public static File saveImage( int menuID, int menuItemID, byte[] bytes ){
@@ -63,7 +81,9 @@ public class ImageUtil {
     }
 
     public static String getImageURL( int menuID, int menuItemID ){
-        return String.format( basePath + "%d/%d", menuID, menuItemID );
+        return String.format( "https://autogarcon.live/api/images/"
+                + "%d/%d", menuID, menuItemID 
+        );
     }
 
     public static void createMenuFolder( int menuID ){
