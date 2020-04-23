@@ -310,7 +310,7 @@ public class Main {
                     });
                 });
             });
-            path("/image", () -> {
+            path("/images", () -> {
                 get("/:menuid/:menuitemid", Main::getImage); 
                 post("/:menuid/:menuitemid", Main::saveImage); 
             });
