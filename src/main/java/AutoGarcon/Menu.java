@@ -25,6 +25,7 @@ public class Menu {
     private TimeRange[] timeRanges; 
     private MenuItem[] menuItems;  
     private String menuName; 
+    private String newField; 
 
     /**
      * Menu: Constructor to create an empty Menu Class.

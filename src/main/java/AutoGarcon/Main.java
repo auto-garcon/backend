@@ -45,7 +45,6 @@ import javax.imageio.ImageIO;
 public class Main {
 
 
-
     /**
      * endpointNotImplemented: Default functionality for when an endpoint has not been implemeneted yet. 
      * @param Request - Request object. 
@@ -64,6 +63,12 @@ public class Main {
     public static Object serveStatic(Request req, Response res) {
         res.type("text/html");
         res.redirect("index.html", 201);
+        return "";
+    }
+
+    public static Object serveImage( Request req, Response res ){
+        res.redirect("images", 201);
+        res.type("image/jpeg");
         return "";
     }
 
@@ -311,8 +316,8 @@ public class Main {
                 });
             });
             path("/images", () -> {
-                get("/:menuid/:menuitemid", Main::getImage); 
-                post("/:menuid/:menuitemid", Main::saveImage); 
+                get("/:menuitemid", Main::serveImage); 
+                post("/:menuitemid", Main::saveImage); 
             });
         });
     }
