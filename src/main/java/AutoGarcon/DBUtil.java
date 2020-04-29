@@ -350,6 +350,37 @@ public class DBUtil {
         }
     }
 
+    /**
+     * saveMenuItem - saves the menuItem to the database.   
+     * @param menuID - the menu that contains the menuItem. 
+     * @param restaurantID - the restaurant associated with the restaurant.  
+     * @param menuItem - the menuItem object to add to the database. 
+     */
+    public static boolean saveOrder( Order order, OrderItem[] orderItems ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        ResultSet result; 
+
+        try {
+            stmt = c.prepareCall( "{call CreateNewOrder(?, ?)}" ); 
+            stmt.setInt("tableID", order.getTableID() ); 
+            stmt.setInt("customerID", order.getCustomerID()); 
+
+            result = stmt.executeQuery(); 
+            
+            //get output param 
+            int orderID = stmt.getInt("newOrderID"); 
+            order.setOrderID( orderID ); 
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing CreateNewOrder.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+        return true; 
+    }
+
     public static Connection connectToDB(){
 
         Connection c = null;

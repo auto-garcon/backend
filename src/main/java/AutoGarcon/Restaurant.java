@@ -36,7 +36,7 @@ public class Restaurant {
     public Restaurant(int restaurantID, String restaurantName, String restaurantAddress) {
         this.restaurantID = restaurantID;
         this.restaurantName = restaurantName;
-        this.address = address;
+        this.address = restaurantAddress;
     }
 
     /**
