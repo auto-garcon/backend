@@ -1,4 +1,5 @@
 sudo mvn --define DB_PASS="[your password]" --define DB_USER="[your username]" -Dexec.mainClass="AutoGarcon.Main" exec:java
 curl -X POST -H "Content-Type: application/json" -d @./test/menu1.json  http://localhost/api/restaurant/21/menu/add
 curl -X GET http://localhost/api/restaurant/21/menu
-curl -X POST -H "Content-Type: application/json" -d *./test/user1.json http://localhost/api/users/newuser
+curl -X POST -H "Content-Type: application/json" -d @./test/user1.json http://localhost/api/users/newuser
+curl -X GET https://autogarcon.live/api/images/48/75
