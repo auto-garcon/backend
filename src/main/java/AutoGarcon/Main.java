@@ -35,24 +35,49 @@ import javax.imageio.ImageIO;
  * the code is the primary source of truth. 
  * Meaning that it's possible for the documentation to be out of date 
  * But the code will always be current. 
+ *
+ *
+ * All of the route handlers will take in two paramaters, a request and a response object. 
+ * These are from the Spark Java web framework, and are used to interact with 
+ * the response and request sent to the API's endpoints. 
+ *
  */
 public class Main {
 
 
-    /*
-     * Can implement custom 501 handling in the future. 
+    /**
+     * endpointNotImplemented: Default functionality for when an endpoint has not been implemeneted yet. 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
      */
     public static Object endpointNotImplemented( Request req, Response res ){
         res.status(501); 
         return "Endpoint Not Implemented"; 
     }
 
+    /**
+     * serveStatic: Serve the web UI's files. 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
     public static Object serveStatic(Request req, Response res) {
         res.type("text/html");
         res.redirect("index.html", 201);
         return "";
     }
 
+    public static Object serveImage( Request req, Response res ){
+        res.redirect("images", 201);
+        res.type("image/jpeg");
+        return "";
+    }
+
+    /**
+     * addMenu: Handler for /api/restaurant/:restaurantid/menu/add
+     * Adds a menu to a database. 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
     public static Object addMenu( Request req, Response res) {
   
         Menu menu = Menu.menuFromJson( req.body() );   
@@ -70,6 +95,12 @@ public class Main {
     }
 
 
+    /**
+     * getAllMenu: Handler for /api/restaurant/:restaurantid/menu/
+     * gets all the menus for the specified restaurant.  
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
     public static Object getAllMenu( Request req, Response res ){
 
         try{ 
@@ -82,6 +113,12 @@ public class Main {
         }
     }
 
+    /**
+     * addUser: When a user is signing in, if they are not 
+     * already added to the database, add them to the database.
+     * @param User - User object. 
+     * @param Response - Response object.  
+     */
     public static Object addUser(User user, Response res ) {
 
         boolean saved = user.save(); 
@@ -95,6 +132,12 @@ public class Main {
         }
     }
 
+    /**
+     * signIn: Handler for /api/users/signin 
+     * Check if the user is in hte database, and give back the userID. 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
     public static Object signIn( Request req, Response res ){
 
         User user = User.userFromJson( req.body() );
@@ -110,6 +153,12 @@ public class Main {
         return userID; 
     }
 
+    /**
+     * getRestaurant: Handler for /api/restaurant/:restaurantid  
+     * gets info about the specifed restaurantID.
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
     public static Object getRestaurant( Request req, Response res ){
 
         try {
@@ -123,6 +172,12 @@ public class Main {
         }
     }
 
+    /**
+     * addRestaurant: Handler for /api/restaurant/add
+     * adds restaurant info to the databse.
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
     public static Object addRestaurant( Request req, Response res ){
         Restaurant restaurant = Restaurant.restaurantFromJson( req.body() ); 
 
@@ -143,9 +198,17 @@ public class Main {
         }
     }
 
+    /**
+     * getImage: Handler for /api/images/:menuid/:menuitemid 
+     * gets the image associated with the specifed menuitem. 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     *
+     * This function writes the image bytes to the response's outputstream.
+     */
     public static Object getImage( Request req, Response res ){
         
-        //res.raw().setContentType("image/png");
+        res.raw().setContentType("image/png");
         byte[] data = null;
 
         try{
@@ -177,7 +240,14 @@ public class Main {
         }
     }
 
-
+    /**
+     * saveImage: Handler for /api/images/:menuid/:menuitemid (POST)
+     * Saves an image to the server's file system given an image upload. 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     *
+     * This function reads from the request's inputstream.
+     */
     public static Object saveImage( Request req, Response res ){
 
         try{
@@ -213,6 +283,9 @@ public class Main {
         }
     }
 
+    /**
+     * initRouter: specifes all of the routes for the API. 
+     */
     public static void initRouter(){
 
 		get("/", Main::serveStatic);
@@ -242,14 +315,17 @@ public class Main {
                     });
                 });
             });
-            path("/image", () -> {
-                get("/:menuid/:menuitemid", Main::getImage); 
-                post("/:menuid/:menuitemid", Main::saveImage); 
+            path("/images", () -> {
+                get("/:menuitemid", Main::serveImage); 
+                post("/:menuitemid", Main::saveImage); 
             });
         });
     }
 
 
+    /**
+     * startServer: Start the server on the specified port (443 for https).
+     */
     public static void startServer() {
 
         port(80);
@@ -261,7 +337,6 @@ public class Main {
     }
 
 	public static void main(String[] args) {
-
         startServer(); 
 	}
 }

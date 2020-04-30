@@ -1,0 +1,3 @@
+alexa greeting has to be customized per restaurant. 
+alexa 2fa registeration (dont worry about it). 
+tickets page, right justify
