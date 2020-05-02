@@ -7,6 +7,7 @@ import java.util.Arrays;
 /**
  * DBUtil: Utility functions for interacting with the datbase.
  * @author Tyler Beverley
+ * @author Tyler Reiland
  * @param DB_USER - System Property that holds username for the database.
  * @param DB_PASS - System Property that holds the Password for the database.
  *
@@ -78,6 +79,65 @@ public class DBUtil {
     }
 
     /**
+     * getOrder: Gets all off the fields for an order by an ID.
+     * @param orderID the id of the order.
+     * @return SQL result set containing order data.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static ResultSet getOrder( int orderID ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetOrderByID(?)}" ); 
+            stmt.setInt( "oID", orderID );  
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetOrderByID stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+        return result;
+    }
+
+    /**
+     * getOrder: Gets a restaurant ID from a table ID
+     * @param tableID the id of the table.
+     * @return SQL result set containing restaurant ID.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static int getRestaurantByTable( int tableID ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetRestaurantByTable(?)}" ); 
+            stmt.setInt( "tID", tableID );  
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetRestaurantByTable stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+
+        try{
+            result.next(); 
+            return result.getInt("restaurantID");
+        } catch (SQLException e){
+            System.out.printf("Failed to get next row in result set.\n Exception: %s\n", e.toString() );
+            return -1;
+        }
+    }
+
+    /**
      * getMenu: Gets a specifed menu from a specifed restaurant. 
      * @param restaurantID
      * @param menuID
@@ -118,7 +178,6 @@ public class DBUtil {
         }
         return menus;
     }
-
 
     /**
      * saveRestaurant: saves restaurant info to the database.
@@ -300,6 +359,31 @@ public class DBUtil {
 
         } catch (SQLException e){
             System.out.printf("SQL Exception while executing GetMenuItemsByMenuId\n" + 
+                    "Exception: %s\n", e.toString()); 
+        }
+        return result;
+    }
+
+    /**
+     * getOrderItems: gets the order Items associated with a orderID. 
+     * @param orderID
+     * @return result set containing tuples of order items.
+     */
+    public static ResultSet getOrderItems( int orderID ) {
+
+        ResultSet result = null; 
+        Connection c = connectToDB(); 
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetAllOrderItemsFromOrder(?)}" ); 
+            stmt.setInt( "myOrderID", orderID);  
+
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+
+        } catch (SQLException e){
+            System.out.printf("SQL Exception while executing GetAllOrderItemsFromOrder\n" + 
                     "Exception: %s\n", e.toString()); 
         }
         return result;

@@ -14,13 +14,18 @@ import java.sql.ResultSet;
  */
 public class Order {
 
+    public enum OrderStatus { 
+        OPEN, 
+        CLOSED, 
+    }
+
     private int orderID;
     private int tableID;
     private int customerID;
     private Timestamp orderTime;
+    private OrderStatus orderStatus;
     private float chargeAmount;
     private int restaurantID;
-    private int numMenuItems;
     private transient OrderItem[] orderItems;
 
 
@@ -41,8 +46,7 @@ public class Order {
         this.customerID = -1;
         this.orderTime = new Timestamp((long) 0.0);
         this.chargeAmount = (float) 0.0;
-        //this.restaurantID = -1;   DEAL WITH THESE LATER OR REMOVE?
-        //this.numMenuItems = 0;
+        this.restaurantID = -1;
         this.orderItems = new OrderItem[0];
     }
 
@@ -60,7 +64,8 @@ public class Order {
             this.orderID = result.getInt("orderID"); 
             this.tableID = result.getInt("tableID");  
             this.orderTime = result.getTimestamp("orderTime"); 
-            this.chargeAmount = result.getFloat("chargeAmount"); 
+            this.chargeAmount = result.getFloat("chargeAmount");
+            this.restaurantID = DBUtil.getRestaurantByTable(this.tableID);
             this.orderItems = OrderItem.orderItems(this.orderID);
 
         }
@@ -118,14 +123,14 @@ public class Order {
         return this.restaurantID;
     }
 
-    public int getNumMenuItems() {
-        return this.numMenuItems;
-    }
-
     public OrderItem[] getOrderItems() {
         return this.orderItems;
     }
 
+    public OrderStatus getOrderStatus() {
+        return this.orderStatus;
+    }
+    
     public void setOrderID(int orderID) {
         this.orderID = orderID;
     }
@@ -149,9 +154,9 @@ public class Order {
     public void setRestaurantID(int restaurantID) {
         this.restaurantID = restaurantID;
     }
-    
-    public void setNumMenuItems(int numMenuItems) {
-        this.numMenuItems = numMenuItems;
+
+    public void setOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 
     public String toString() {
@@ -162,7 +167,6 @@ public class Order {
         str.append("orderTime: " + this.getOrderTime() + "\n" ); 
         str.append("chargeAmount: " + this.getChargeAmount() + "\n");
         str.append("restaurantID" + this.getRestaurantID() + "\n"); 
-        str.append("numMenuItems: " + this.getNumMenuItems() + "\n");
         str.append("orderItems:\n");
         for( int i = 0; i < this.orderItems.length; i++ ){
             String item = String.format("item: %s,\n", this.orderItems[i].toString() );
