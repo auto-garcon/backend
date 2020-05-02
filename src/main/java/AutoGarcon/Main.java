@@ -303,7 +303,6 @@ public class Main {
                 post("/add", Main::addRestaurant ); 
                 path("/:restaurantid", () -> {
                     get("", Main::getRestaurant); 
-                    get("/orders", Main::endpointNotImplemented);
                     get("/tables", Main::endpointNotImplemented); 
                     post("/sitdown",Main::endpointNotImplemented); 
                     post("/orders/submit", Main::endpointNotImplemented); 
@@ -312,6 +311,15 @@ public class Main {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
                         post("/add", "application/json", Main::addMenu); 
                         post("/remove", Main::endpointNotImplemented); 
+                    });
+                    path("/order", () -> {
+                        post("/new", Main::endpointNotImplemented);
+                        post("/submit", Main::endpointNotImplemented);
+                        post("/complete", Main::endpointNotImplemented);
+                        path("/:orderid", () -> {
+                            post("/add", Main::endpointNotImplemented);
+                            post("/submit", Main::endpointNotImplemented);
+                        });
                     });
                 });
             });
