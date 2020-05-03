@@ -62,13 +62,19 @@ public class Main {
      */
     public static Object serveStatic(Request req, Response res) {
         res.type("text/html");
-        res.redirect("index.html", 201);
+        res.redirect("build/index.html", 201);
         return "";
     }
 
+    /**
+     * serveImage: serve an image file. 
+     * depreciated
+     */
     public static Object serveImage( Request req, Response res ){
-        res.redirect("images", 201);
-        res.type("image/jpeg");
+        res.type("image/webp");
+        String menuItemID = req.params(":menuitemid"); 
+        res.redirect("images/" + menuItemID + ".jpg", 201);
+        System.out.println("hello");
         return "";
     }
 
@@ -142,7 +148,7 @@ public class Main {
 
         User user = User.userFromJson( req.body() );
         int userID = DBUtil.getUserID( user ); 
-        System.out.println( user.toString() ); 
+        //System.out.println( user.toString() ); 
 
         if(userID == -1 ){
             return addUser( user, res ); 
@@ -315,10 +321,10 @@ public class Main {
                     });
                 });
             });
-            path("/images", () -> {
-                get("/:menuitemid", Main::serveImage); 
-                post("/:menuitemid", Main::saveImage); 
-            });
+            //path("/images", () -> {
+               // get("/:menuitemid", Main::serveImage); 
+               // post("/:menuitemid", Main::saveImage); 
+           //});
         });
     }
 
@@ -330,7 +336,8 @@ public class Main {
 
         port(80);
         // port(443); // HTTPS port
-		staticFiles.location("/public/build");
+		staticFiles.location("public");
+
         //secure("/home/ubuntu/env/keystore.jks","autogarcon", null, null); // HTTPS key configuration for spark
         initRouter(); 
         DBUtil.connectToDB();

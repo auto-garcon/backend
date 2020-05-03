@@ -243,10 +243,12 @@ public class DBUtil {
             stmt.setObject("iPrice",  menuItem.getPrice(), Types.DECIMAL, 2 ); 
             //stmt.registerOutParameter("menuItemID", Types.INTEGER); 
 
-             result = stmt.executeQuery(); 
-             stmt.getMoreResults(); 
-             result2 = stmt.getResultSet();
-             result2.next();
+            
+            //createdMenuID is in second result set...
+            result = stmt.executeQuery(); 
+            stmt.getMoreResults(); 
+            result2 = stmt.getResultSet();
+            result2.next();
 
             //get output param 
             int menuItemID = result2.getInt("createdMenuItemID"); 
