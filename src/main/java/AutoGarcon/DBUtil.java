@@ -199,6 +199,7 @@ public class DBUtil {
         Connection c = connectToDB(); 
         CallableStatement stmt; 
         ResultSet result; 
+        ResultSet result2; 
 
         try {
             stmt = c.prepareCall( "{call CreateNewMenuItem(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}" ); 
@@ -242,10 +243,13 @@ public class DBUtil {
             stmt.setObject("iPrice",  menuItem.getPrice(), Types.DECIMAL, 2 ); 
             //stmt.registerOutParameter("menuItemID", Types.INTEGER); 
 
-            result = stmt.executeQuery(); 
-            
+             result = stmt.executeQuery(); 
+             stmt.getMoreResults(); 
+             result2 = stmt.getResultSet();
+             result2.next();
+
             //get output param 
-            int menuItemID = result.getInt("createdMenuItemID"); 
+            int menuItemID = result2.getInt("createdMenuItemID"); 
             menuItem.setItemID( menuItemID ); 
 
         }
@@ -305,6 +309,12 @@ public class DBUtil {
         return result;
     }
 
+    /**
+     * getUserID: gets the userID of the specified user object.
+     *
+     * finds the specifed user by userID. 
+     * @param user - user object with an unknown userID. 
+     */
     public static int getUserID( User user ){
         ResultSet result = null; 
         Connection c = connectToDB(); 
