@@ -293,7 +293,7 @@ public class Main {
             }
             else { 
                 res.status(500); 
-                return "Can't get any favorite restaurants for the user"; 
+                return "Cannot get any favorite restaurants for the user"; 
             }
         } catch( NumberFormatException nfe ){
             res.status(400); 
@@ -541,7 +541,7 @@ public class Main {
                 });
             });
             path("/restaurant", () -> {
-                post("/add", Main::addRestaurant ); 
+                post("/add", Main::addRestaurant, new JsonTransformer() ); 
                 path("/:restaurantid", () -> {
                     get("", Main::getRestaurant, new JsonTransformer()); 
                     get("/tables", Main::endpointNotImplemented); 
