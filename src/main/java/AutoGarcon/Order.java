@@ -1,5 +1,6 @@
 package AutoGarcon;
-import com.google.gson.Gson; 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException; 
 import javax.swing.text.html.Option;
 import java.sql.SQLException;
@@ -45,6 +46,7 @@ public class Order {
         this.tableID = -1;
         this.customerID = -1;
         this.orderTime = new Timestamp((long) 0.0);
+        this.orderStatus = OrderStatus.OPEN;
         this.chargeAmount = (float) 0.0;
         this.restaurantID = -1;
         this.orderItems = new OrderItem[0];
@@ -63,7 +65,9 @@ public class Order {
             result.next(); 
             this.orderID = result.getInt("orderID"); 
             this.tableID = result.getInt("tableID");  
-            this.orderTime = result.getTimestamp("orderTime"); 
+            this.orderTime = result.getTimestamp("orderTime");
+            int statusInt = result.getInt("orderStatus");
+            this.orderStatus = OrderStatus.values()[statusInt];
             this.chargeAmount = result.getFloat("chargeAmount");
             this.restaurantID = DBUtil.getRestaurantByTable(this.tableID);
             this.orderItems = OrderItem.orderItems(this.orderID);
@@ -76,22 +80,25 @@ public class Order {
         }
     }
 
-    public static Order orderFromJson( String body){
+    public static Order orderFromJson( String body ){
 
         Gson gson = new Gson(); 
         Order order = new Order(); 
 
         try { 
             order = gson.fromJson( body, Order.class );
+            System.out.println(gson.toJson(order));
+
         } catch( JsonSyntaxException e ){
             System.out.printf("Failed to deserialze the request body into an Order object.\n" + 
                     "Request body: %s\n. Exception: %s\n", body, e.toString() );
+            return new Order();
         }
         return order;
     }
 
     public boolean save(){
-        return DBUtil.saveOrder( this, this.orderItems ); 
+        return DBUtil.saveOrder( this ); 
     }
 
     public boolean initializeOrder(Order order){

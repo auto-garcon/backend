@@ -1,4 +1,5 @@
-package AutoGarcon; 
+package AutoGarcon;
+
 import static spark.Spark.*;
 
 import com.google.gson.*;
@@ -7,11 +8,13 @@ import spark.Response;
 import spark.Route;
 
 import java.lang.reflect.Type;
-import java.io.OutputStream; 
+import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
-import java.nio.file.Files; 
+import java.nio.file.Files;
+import java.util.Map;
+
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException; 
 import javax.servlet.http.HttpServletResponse; 
@@ -44,6 +47,33 @@ import javax.imageio.ImageIO;
  */
 public class Main {
 
+    //private class to be used as a key for pairing with a specific order
+    private class UniqueTable {
+        int restaurantID;
+        int tableNumber;
+
+        public UniqueTable(int restaurantID, int tableNumber) {
+            this.restaurantID = restaurantID;
+            this.tableNumber = tableNumber;
+        }
+    
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof UniqueTable)) return false;
+            UniqueTable key = (UniqueTable) o;
+            return restaurantID == key.restaurantID && tableNumber == key.tableNumber;
+        }
+    
+        @Override
+        public int hashCode() {
+            int result = restaurantID;
+            result = 31 * result + tableNumber;
+            return result;
+        }
+    }
+
+    private Map<UniqueTable, Order> ordersMap;
 
     /**
      * endpointNotImplemented: Default functionality for when an endpoint has not been implemeneted yet. 
@@ -124,9 +154,12 @@ public class Main {
      */
     public static Object addItemToOrder( Request req, Response res) {
   
-        Order order = Order.orderFromJson( req.body() );   
+        OrderItem orderItem = OrderItem.orderItemFromJson( req.body() );
+        int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+        //TODO: Need to get the order from the order map
+        Order order = new Order();
 
-        //System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
         boolean initialized = order.initializeOrder(order); 
 
         if (!order.isDefault() && initialized) {
@@ -136,6 +169,16 @@ public class Main {
             res.status(500); 
             return "Error recieving menu"; 
         }
+    }
+
+    /**
+     * addItemToOrder: Handler for api/restaurant/:restaurantid/order/add
+     * Populates order object with initial fields
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object submitOrder( Request req, Response res) {
+        return "IMPLEMENT ME";
     }
 
 
@@ -239,6 +282,32 @@ public class Main {
         else {
             res.status(400); 
             return "Failed to parse out request for adding a restaurant"; 
+        }
+    }
+
+    /**
+     * submitCompleteOrder: Handler for /api/restaurant/add
+     * adds a full order to the database
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object submitCompleteOrder( Request req, Response res ){
+        Order order = Order.orderFromJson( req.body() ); 
+
+        if( !order.isDefault() ){
+            boolean saved = order.save(); 
+            if( saved ){
+                res.status(200); 
+                return "Successfully saved new order"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to save new order"; 
+            }
+        }
+        else {
+            res.status(400); 
+            return "Failed to parse out request for submitting a order"; 
         }
     }
 
@@ -354,7 +423,7 @@ public class Main {
                         post("/remove", Main::endpointNotImplemented); 
                     });
                     path("/tables", () -> {
-                        path("/:tableid", () -> {
+                        path("/:tablenumber", () -> {
                             post("/sitdown",Main::endpointNotImplemented); 
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
@@ -364,7 +433,7 @@ public class Main {
                         });
                     });
                     path("/order", () -> {
-                        post("/submit", Main::endpointNotImplemented);
+                        post("/submit", Main::submitCompleteOrder, new JsonTransformer());
                         path("/:orderid", () -> {
                             post("/complete", Main::endpointNotImplemented);
                         });
@@ -384,7 +453,7 @@ public class Main {
      */
     public static void startServer() {
 
-        port(80);
+        port(8000);
         // port(443); // HTTPS port
 		staticFiles.location("/public/build");
         //secure("/home/ubuntu/env/keystore.jks","autogarcon", null, null); // HTTPS key configuration for spark

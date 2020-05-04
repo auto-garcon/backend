@@ -439,31 +439,46 @@ public class DBUtil {
     }
 
     /**
-     * saveMenuItem - saves the menuItem to the database.   
-     * @param menuID - the menu that contains the menuItem. 
-     * @param restaurantID - the restaurant associated with the restaurant.  
-     * @param menuItem - the menuItem object to add to the database. 
+     * saveOrder - saves the order and all of its order items to the database.   
+     * @param order - a full order containing all of its menu items
      */
-    public static boolean saveOrder( Order order, OrderItem[] orderItems ){
-        //TODO: THIS METHOD NEEDS TO BE CHANGED. SHOULD CALL CREATE, ADD, AND COMPLETE
+    public static boolean saveOrder( Order order ){
         Connection c = connectToDB(); 
         CallableStatement stmt; 
-        ResultSet result; 
+        ResultSet result;
 
         try {
             stmt = c.prepareCall( "{call CreateNewOrder(?, ?)}" ); 
             stmt.setInt("tableID", order.getTableID() ); 
             stmt.setInt("customerID", order.getCustomerID()); 
-
-            result = stmt.executeQuery(); 
             
-            //get output param 
-            int orderID = stmt.getInt("newOrderID"); 
+            //initialize order in DB and store the new orderID
+            result = stmt.executeQuery(); 
+            result.next();
+            int orderID = result.getInt("newOrderID"); 
+
             order.setOrderID( orderID ); 
+
+            //add all orderitems to order
+            OrderItem[] orderItems = order.getOrderItems();
+            for( OrderItem orderItem : orderItems ){
+                stmt = c.prepareCall( "{call AddItemToOrder(?, ?, ?, ?, ?)}" );
+                stmt.setInt("orderIDToAddTo", orderID);
+                stmt.setInt("menuItemIDToAdd", orderItem.getMenuItemID());
+                stmt.setInt("menuID", orderItem.getMenuID());
+                stmt.setInt("quantityToAdd", orderItem.getQuantity());
+                stmt.setString("commentsToAdd", orderItem.getComments());
+                stmt.executeQuery();
+            }
+
+            //complete order
+            stmt = c.prepareCall( "{call CompleteOrder(?)}" );
+            stmt.setInt("oID", orderID);
+            stmt.executeQuery();
 
         }
         catch( SQLException e ){
-            System.out.printf("SQL Exception while executing CreateNewOrder.\n" + 
+            System.out.printf("SQL Exception while executing saveOrder.\n" + 
                     "Exception: %s\n", e.toString() );
             return false; 
         }

@@ -17,6 +17,7 @@ public class OrderItem {
 
     private int orderItemID;
     private int menuItemID;
+    private int menuID;
     private int quantity;
     private String comments;
     private int orderID;
@@ -28,6 +29,7 @@ public class OrderItem {
     public OrderItem(){
         this.orderItemID = -1;
         this.menuItemID = -1;
+        this.menuID = -1;
         this.quantity = 0;
         this.comments = "Default OrderItem";
         this.orderID = -1;
@@ -44,7 +46,10 @@ public class OrderItem {
 
         try{ 
             this.orderItemID = rs.getInt( "orderItemID" );  
-            this.menuItemID = rs.getInt("itemID"); 
+            this.menuItemID = rs.getInt("itemID");
+            //menuID is only used in POST request for adding order item
+            this.menuID = -1;
+            this.menuID = -1;
             this.quantity = rs.getInt("quantity"); 
             this.comments = rs.getString("comments"); 
             this.price = rs.getFloat("price"); 
@@ -137,6 +142,14 @@ public class OrderItem {
 
     public void setPrice(float price) {
         this.price = price;
+    }
+
+    public int getMenuID() {
+        return this.menuID;
+    }
+
+    public void setMenuID(int menuID) {
+        this.menuID = menuID;
     }
 
 }
