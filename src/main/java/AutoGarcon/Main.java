@@ -195,8 +195,6 @@ public class Main {
     public static Object getOrdersWithin24Hours( Request req, Response res) {
         try{ 
             int userID = Integer.parseInt(req.params(":userid"));
-            // ResultSet orders = DBUtil.getOrdersWithin24Hours(userID);
-            // JSONArray result = ResultSetConverter.convert(orders);
             res.status(200); 
             return Order.allOrders(userID); 
         } catch( NumberFormatException nfe ){
