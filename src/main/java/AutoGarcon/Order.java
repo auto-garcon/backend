@@ -94,14 +94,19 @@ public class Order {
         return DBUtil.saveOrder( this, this.orderItems ); 
     }
 
-    public boolean initializeOrder(){
-        //IMPLEMENT THIS
-        return true;
+    public boolean initializeOrder(Order order){
+        //initializes an order, sets the 2 fields necessary to add it to the database
+        if(!order.isDefault()){
+            this.customerID = order.customerID;
+            this.tableID = order.tableID;
+            return true;
+        }
+        return false;
     }
 
 
     public boolean isDefault(){
-        return this.orderID == -1; 
+        return this.customerID == -1; 
     }
 
     public int getOrderID() {

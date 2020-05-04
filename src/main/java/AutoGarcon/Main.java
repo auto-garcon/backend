@@ -94,6 +94,50 @@ public class Main {
         }
     }
 
+    /**
+     * initializeOrder: Handler for api/restaurant/:restaurantid/:tablenumber/order/new
+     * Populates order object with initial fields
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object initializeOrder( Request req, Response res) {
+  
+        Order order = Order.orderFromJson( req.body() );   
+
+        //System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
+        boolean initialized = order.initializeOrder(order); 
+
+        if (!order.isDefault() && initialized) {
+            res.status(200);
+            return "Successfully initialized order.";
+        } else {
+            res.status(500); 
+            return "Error recieving menu"; 
+        }
+    }
+
+    /**
+     * addItemToOrder: Handler for api/restaurant/:restaurantid/order/add
+     * Populates order object with initial fields
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object addItemToOrder( Request req, Response res) {
+  
+        Order order = Order.orderFromJson( req.body() );   
+
+        //System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
+        boolean initialized = order.initializeOrder(order); 
+
+        if (!order.isDefault() && initialized) {
+            res.status(200);
+            return "Successfully initialized order.";
+        } else {
+            res.status(500); 
+            return "Error recieving menu"; 
+        }
+    }
+
 
     /**
      * getAllMenu: Handler for /api/restaurant/:restaurantid/menu/
@@ -304,21 +348,25 @@ public class Main {
                 path("/:restaurantid", () -> {
                     get("", Main::getRestaurant); 
                     get("/tables", Main::endpointNotImplemented); 
-                    post("/sitdown",Main::endpointNotImplemented); 
-                    post("/orders/submit", Main::endpointNotImplemented); 
-                    post("/orders/complete", Main::endpointNotImplemented); 
                     path("/menu", () -> {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
                         post("/add", "application/json", Main::addMenu); 
                         post("/remove", Main::endpointNotImplemented); 
                     });
+                    path("/tables", () -> {
+                        path("/:tableid", () -> {
+                            post("/sitdown",Main::endpointNotImplemented); 
+                            path("/order", () -> {
+                                post("/new", Main::initializeOrder, new JsonTransformer());
+                                post("/add", Main::endpointNotImplemented);
+                                post("/submit", Main::endpointNotImplemented);
+                            });
+                        });
+                    });
                     path("/order", () -> {
-                        post("/new", Main::endpointNotImplemented);
                         post("/submit", Main::endpointNotImplemented);
-                        post("/complete", Main::endpointNotImplemented);
                         path("/:orderid", () -> {
-                            post("/add", Main::endpointNotImplemented);
-                            post("/submit", Main::endpointNotImplemented);
+                            post("/complete", Main::endpointNotImplemented);
                         });
                     });
                 });
