@@ -1,15 +1,11 @@
 package AutoGarcon;
 
 import static spark.Spark.*;
-
 import com.google.gson.*;
-
 import org.json.JSONArray;
-
 import spark.Request;
 import spark.Response;
 import spark.Route;
-
 import java.lang.reflect.Type;
 import java.io.OutputStream;
 import java.io.InputStream;
@@ -19,7 +15,6 @@ import java.nio.file.Files;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException; 
 import javax.servlet.http.HttpServletResponse; 
@@ -48,37 +43,9 @@ import javax.imageio.ImageIO;
  * All of the route handlers will take in two paramaters, a request and a response object. 
  * These are from the Spark Java web framework, and are used to interact with 
  * the response and request sent to the API's endpoints. 
- *
  */
 public class Main {
 
-    //private class to be used as a key for pairing with a specific order
-    private class UniqueTable {
-        int restaurantID;
-        int tableNumber;
-
-        public UniqueTable(int restaurantID, int tableNumber) {
-            this.restaurantID = restaurantID;
-            this.tableNumber = tableNumber;
-        }
-    
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof UniqueTable)) return false;
-            UniqueTable key = (UniqueTable) o;
-            return restaurantID == key.restaurantID && tableNumber == key.tableNumber;
-        }
-    
-        @Override
-        public int hashCode() {
-            int result = restaurantID;
-            result = 31 * result + tableNumber;
-            return result;
-        }
-    }
-
-    private Map<UniqueTable, Order> ordersMap;
 
     /**
      * endpointNotImplemented: Default functionality for when an endpoint has not been implemeneted yet. 
@@ -97,13 +64,19 @@ public class Main {
      */
     public static Object serveStatic(Request req, Response res) {
         res.type("text/html");
-        res.redirect("index.html", 201);
+        res.redirect("build/index.html", 201);
         return "";
     }
 
+    /**
+     * serveImage: serve an image file. 
+     * depreciated
+     */
     public static Object serveImage( Request req, Response res ){
-        res.redirect("images", 201);
-        res.type("image/jpeg");
+        res.type("image/webp");
+        String menuItemID = req.params(":menuitemid"); 
+        res.redirect("images/" + menuItemID + ".jpg", 201);
+        System.out.println("hello");
         return "";
     }
 
@@ -141,6 +114,11 @@ public class Main {
 
         //System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
         boolean initialized = order.initializeOrder(order); 
+        int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+
+        OrderTracker tracker = OrderTracker.getInstance();
+        tracker.addOrder(restaurantID, tableNumber, order ); 
 
         if (!order.isDefault() && initialized) {
             res.status(200);
@@ -152,7 +130,7 @@ public class Main {
     }
 
     /**
-     * addItemToOrder: Handler for api/restaurant/:restaurantid/order/add
+     * addItemToOrder: Handler for api/restaurant/:restaurantid/order/additem
      * Populates order object with initial fields
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -162,22 +140,26 @@ public class Main {
         OrderItem orderItem = OrderItem.orderItemFromJson( req.body() );
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
-        //TODO: Need to get the order from the order map
-        Order order = new Order();
 
-        boolean initialized = order.initializeOrder(order); 
+        OrderTracker tracker = OrderTracker.getInstance();
+        Order order = tracker.getOrder( restaurantID, tableNumber ); 
 
-        if (!order.isDefault() && initialized) {
-            res.status(200);
-            return "Successfully initialized order.";
-        } else {
-            res.status(500); 
-            return "Error recieving menu"; 
+        if( order == null ){
+            System.out.printf("Tried to add an item to a non-existant order.\n" +
+                    "restaurantID: %d, tableNumber: %d.\n", 
+                    restaurantID, tableNumber 
+            );
+            res.status(400); 
+            return "No open order for this table."; 
         }
+
+        order.addOrderItem( orderItem ); 
+        res.status(200);
+        return "Successfully initialized order.";
     }
 
     /**
-     * submitOrder: Handler for api/restaurant/:restaurantid/order/add
+     * submitOrder: Handler for api/restaurant/:restaurantid/order/submit
      * Submits the order once it is all built
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -253,7 +235,7 @@ public class Main {
 
         User user = User.userFromJson( req.body() );
         int userID = DBUtil.getUserID( user ); 
-        System.out.println( user.toString() ); 
+        //System.out.println( user.toString() ); 
 
         if(userID == -1 ){
             return addUser( user, res ); 
@@ -464,10 +446,6 @@ public class Main {
                     });
                 });
             });
-            path("/images", () -> {
-                get("/:menuitemid", Main::serveImage); 
-                post("/:menuitemid", Main::saveImage); 
-            });
         });
     }
 
@@ -479,7 +457,8 @@ public class Main {
 
         port(8000);
         // port(443); // HTTPS port
-		staticFiles.location("/public/build");
+		staticFiles.location("public");
+
         //secure("/home/ubuntu/env/keystore.jks","autogarcon", null, null); // HTTPS key configuration for spark
         initRouter(); 
         DBUtil.connectToDB();

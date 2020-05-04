@@ -22,7 +22,7 @@ import com.google.gson.JsonPrimitive;
 public class ImageUtil { 
 
 
-    public static final String basePath = "./images/menus/";
+    public static final String basePath = "./../src/main/images/";
 
 
     /**
@@ -34,7 +34,7 @@ public class ImageUtil {
      * @return True if saved correctly, false otherwise. 
      */
     public static boolean saveImage( int menuID, int menuItemID, InputStream is ){
-        String path = String.format( basePath + "%d/%d", menuID, menuItemID );
+        String path = String.format( basePath + "/%d.jpg",  menuItemID );
         createMenuFolder( menuID ); 
 
         File f = new File( path ); 
@@ -55,6 +55,8 @@ public class ImageUtil {
      * @param menuItemID - the menuItemID of the image to be saved. 
      * @param bytes - the bytes of the image to be saved. 
      * @return File - The image file that was saved to the filesystem.
+     *
+     * @deprecitaed 
      */
     public static File saveImage( int menuID, int menuItemID, byte[] bytes ){
 
@@ -82,7 +84,7 @@ public class ImageUtil {
      */
     public static File getImage( int menuID, int menuItemID ) {
 
-        String path = String.format( basePath + "%d/%d", menuID, menuItemID );
+        String path = String.format( basePath + "/%d", menuItemID );
         File image = new File( path ); 
 
         if( !image.exists() ){
@@ -100,9 +102,9 @@ public class ImageUtil {
      *
      * @return - The autogarcon url for retreiving the specifed image from the API. 
      */
-    public static String getImageURL( int menuID, int menuItemID ){
-        return String.format( "https://autogarcon.live/api/images/"
-                + "%d/%d", menuID, menuItemID 
+    public static String getImageURL( int menuItemID ){
+        return String.format( "https://autogarcon.live/images/"
+                + "%d.jpg",  menuItemID 
         );
     }
 
@@ -110,6 +112,7 @@ public class ImageUtil {
     /**
      * createMenuFolder: create a folder for a new menu to store images in. 
      * @param menuID - menuID of the images that will be stored in the folder. 
+     * @depreciated 
      */
     public static void createMenuFolder( int menuID ){
         File dir = new File( basePath + Integer.toString( menuID ) );
