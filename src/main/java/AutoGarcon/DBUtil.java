@@ -512,6 +512,30 @@ public class DBUtil {
         return true; 
     }
 
+    /**
+     * markOrderReady - marks an order ready to go out to a table  
+     * @param orderID - the id of the order that is now ready
+     */
+    public static boolean markOrderReady( int orderID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call MarkOrderReady(?)}" ); 
+            stmt.setInt("oID", orderID); 
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing markOrderReady.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
     public static Connection connectToDB(){
 
         Connection c = null;

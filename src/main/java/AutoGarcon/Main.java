@@ -203,6 +203,30 @@ public class Main {
         }
     }
 
+    /**
+     * markOrderReady: Handler for api/users/:userid/orders
+     * Marks an order ready to go out to a table
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object markOrderReady( Request req, Response res) {
+        try{ 
+            int orderID = Integer.parseInt(req.params(":orderid"));
+            boolean success = DBUtil.markOrderReady(orderID);
+            if( success ){
+                res.status(200); 
+                return "Successfully marked order ready"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to mark order ready"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse order ID in markOrderReady."; 
+        }
+    }
+
 
     /**
      * getAllMenu: Handler for /api/restaurant/:restaurantid/menu/
@@ -441,7 +465,7 @@ public class Main {
                     get("/tables", Main::endpointNotImplemented); 
                     path("/menu", () -> {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
-                        post("/add", "application/json", Main::addMenu); 
+                        post("/add", "application/json", Main::addMenu, new JsonTransformer()); 
                         post("/remove", Main::endpointNotImplemented); 
                     });
                     path("/tables", () -> {
@@ -457,7 +481,7 @@ public class Main {
                     path("/order", () -> {
                         post("/submit", Main::submitCompleteOrder, new JsonTransformer());
                         path("/:orderid", () -> {
-                            post("/complete", Main::endpointNotImplemented);
+                            post("/complete", Main::markOrderReady, new JsonTransformer());
                         });
                     });
                 });
