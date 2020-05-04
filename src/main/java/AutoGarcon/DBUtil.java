@@ -1,12 +1,14 @@
 package AutoGarcon; 
 import java.sql.*; 
 import java.io.File; 
-import java.util.List; 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays; 
 
 /**
  * DBUtil: Utility functions for interacting with the datbase.
  * @author Tyler Beverley
+ * @author Tyler Reiland
  * @param DB_USER - System Property that holds username for the database.
  * @param DB_PASS - System Property that holds the Password for the database.
  *
@@ -78,6 +80,91 @@ public class DBUtil {
     }
 
     /**
+     * getOrder: Gets all off the fields for an order by an ID.
+     * @param orderID the id of the order.
+     * @return SQL result set containing order data.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static ResultSet getOrder( int orderID ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetOrderByID(?)}" ); 
+            stmt.setInt( "oID", orderID );  
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetOrderByID stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+        return result;
+    }
+
+    /**
+     * getOrder: Gets all off the fields for an order by an ID.
+     * @param orderID the id of the order.
+     * @return SQL result set containing order data.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static ResultSet getOrdersWithin24Hours( int userID ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetOrdersInPast24Hours(?)}" ); 
+            stmt.setInt( "uID", userID );  
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetOrderByID stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+        return result;
+    }
+
+    /**
+     * getOrder: Gets a restaurant ID from a table ID
+     * @param tableID the id of the table.
+     * @return SQL result set containing restaurant ID.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static int getRestaurantByTable( int tableID ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetRestaurantByTable(?)}" ); 
+            stmt.setInt( "tID", tableID );  
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetRestaurantByTable stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+
+        try{
+            result.next(); 
+            return result.getInt("restaurantID");
+        } catch (SQLException e){
+            System.out.printf("Failed to get next row in result set.\n Exception: %s\n", e.toString() );
+            return -1;
+        }
+    }
+
+    /**
      * getMenu: Gets a specifed menu from a specifed restaurant. 
      * @param restaurantID
      * @param menuID
@@ -118,7 +205,6 @@ public class DBUtil {
         }
         return menus;
     }
-
 
     /**
      * saveRestaurant: saves restaurant info to the database.
@@ -311,6 +397,33 @@ public class DBUtil {
         return result;
     }
 
+
+
+    /**
+     * getOrderItems: gets the order Items associated with a orderID. 
+     * @param orderID
+     * @return result set containing tuples of order items.
+     */
+    public static ResultSet getOrderItems( int orderID ) {
+
+        ResultSet result = null; 
+        Connection c = connectToDB(); 
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetAllOrderItemsFromOrder(?)}" ); 
+            stmt.setInt( "myOrderID", orderID);  
+
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+
+        } catch (SQLException e){
+            System.out.printf("SQL Exception while executing GetAllOrderItemsFromOrder\n" + 
+                    "Exception: %s\n", e.toString()); 
+        }
+        return result;
+    }
+
     /**
      * getUserID: gets the userID of the specified user object.
      *
@@ -364,6 +477,53 @@ public class DBUtil {
                     "Exception: %s\n", e.toString() );
             return false; 
         }
+    }
+
+    /**
+     * saveOrder - saves the order and all of its order items to the database.   
+     * @param order - a full order containing all of its menu items
+     */
+    public static boolean saveOrder( Order order ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        ResultSet result;
+
+        try {
+            stmt = c.prepareCall( "{call CreateNewOrder(?, ?)}" ); 
+            stmt.setInt("tableID", order.getTableID() ); 
+            stmt.setInt("customerID", order.getCustomerID()); 
+            
+            //initialize order in DB and store the new orderID
+            result = stmt.executeQuery(); 
+            result.next();
+            int orderID = result.getInt("newOrderID"); 
+
+            order.setOrderID( orderID ); 
+
+            //add all orderitems to order
+            ArrayList<OrderItem> orderItems = order.getOrderItems();
+            for( OrderItem orderItem : orderItems ){
+                stmt = c.prepareCall( "{call AddItemToOrder(?, ?, ?, ?, ?)}" );
+                stmt.setInt("orderIDToAddTo", orderID);
+                stmt.setInt("menuItemIDToAdd", orderItem.getMenuItemID());
+                stmt.setInt("menuID", orderItem.getMenuID());
+                stmt.setInt("quantityToAdd", orderItem.getQuantity());
+                stmt.setString("commentsToAdd", orderItem.getComments());
+                stmt.executeQuery();
+            }
+
+            //complete order
+            stmt = c.prepareCall( "{call CompleteOrder(?)}" );
+            stmt.setInt("oID", orderID);
+            stmt.executeQuery();
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing saveOrder.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+        return true; 
     }
 
     public static Connection connectToDB(){
