@@ -199,6 +199,10 @@ public class Order {
         return this.orderItems;
     }
 
+    public void addOrderItem( OrderItem item ){
+        this.orderItems.add( item );
+    }
+
     public OrderStatus getOrderStatus() {
         return this.orderStatus;
     }

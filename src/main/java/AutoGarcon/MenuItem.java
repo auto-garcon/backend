@@ -84,7 +84,7 @@ public class MenuItem {
             this.description = rs.getString("description"); 
             this.price = rs.getFloat("price"); 
             this.calories = rs.getInt("calories");
-            this.imageURL = ImageUtil.getImageURL( menuID, this.itemID ); 
+            this.imageURL = ImageUtil.getImageURL( this.itemID ); 
             
             if( rs.getBoolean("gluten") ){
                 allergens.add( Allergen.GLUTEN );
@@ -182,7 +182,7 @@ public class MenuItem {
     }
 
     public void setImageURL(int menuID, int itemID) {
-        this.imageURL = ImageUtil.getImageURL(menuID, itemID); 
+        this.imageURL = ImageUtil.getImageURL(itemID); 
     }
     
 
