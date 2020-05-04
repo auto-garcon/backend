@@ -445,6 +445,7 @@ public class DBUtil {
      * @param menuItem - the menuItem object to add to the database. 
      */
     public static boolean saveOrder( Order order, OrderItem[] orderItems ){
+        //TODO: THIS METHOD NEEDS TO BE CHANGED. SHOULD CALL CREATE, ADD, AND COMPLETE
         Connection c = connectToDB(); 
         CallableStatement stmt; 
         ResultSet result; 

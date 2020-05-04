@@ -87,16 +87,21 @@ public class Order {
             System.out.printf("Failed to deserialze the request body into an Order object.\n" + 
                     "Request body: %s\n. Exception: %s\n", body, e.toString() );
         }
-        return order; 
+        return order;
+    }
+
+    public boolean save(){
+        return DBUtil.saveOrder( this, this.orderItems ); 
+    }
+
+    public boolean initializeOrder(){
+        //IMPLEMENT THIS
+        return true;
     }
 
 
     public boolean isDefault(){
         return this.orderID == -1; 
-    }
-
-    public boolean save(){
-        return DBUtil.saveOrder( this, this.orderItems ); 
     }
 
     public int getOrderID() {
