@@ -110,8 +110,8 @@ public class Order {
     /**
      * allOrders: Get all of the orders in an array 
      * for the specified user. 
-     * @param userID the restaurant to get menus for. 
-     * @return An array of menus. 
+     * @param userID the restaurant to get orders for. 
+     * @return An array of orders. 
      */
     public static ArrayList<Order> allOrders( int userID ){
 

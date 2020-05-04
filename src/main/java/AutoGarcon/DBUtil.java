@@ -550,7 +550,7 @@ public class DBUtil {
 
         try {
             stmt = c.prepareCall( "{call AddFavoriteRestaurant(?, ?)}" ); 
-            stmt.setInt("userID", userID);
+            stmt.setInt("userId", userID);
             stmt.setInt("rID", restaurantID); 
             
             //return true if succeded
@@ -576,7 +576,7 @@ public class DBUtil {
 
         try {
             stmt = c.prepareCall( "{call RemoveFavoriteRestaurant(?, ?)}" ); 
-            stmt.setInt("userID", userID);
+            stmt.setInt("uID", userID);
             stmt.setInt("rID", restaurantID); 
             
             //return true if succeded
@@ -595,24 +595,25 @@ public class DBUtil {
      * getFavoriteRestaurants - gets the favorite restaurants for a user
      * @param userID - the id of the user
      */
-    public static JSONArray getFavoriteRestaurants( int userID ){
+    public static ResultSet getFavoriteRestaurants( int userID ){
         Connection c = connectToDB(); 
         CallableStatement stmt; 
+        ResultSet result = null;
 
         try {
             stmt = c.prepareCall( "{call GetFavoriteRestaurants(?)}" ); 
             stmt.setInt("inputUserID", userID);
             
             //return response formatted in JSON
-            ResultSet result = stmt.executeQuery(); 
-            return ResultSetConverter.convert(result);
+            result = stmt.executeQuery(); 
+            return result;
 
         }
         catch( Exception e ){
             System.out.printf("SQL Exception while executing getFavoriteRestaurants.\n" + 
                     "Exception: %s\n", e.toString() );
-            return new JSONArray();
         }
+        return result;
     }
 
     public static Connection connectToDB(){

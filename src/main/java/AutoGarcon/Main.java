@@ -18,6 +18,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Map;
 
 import javax.servlet.MultipartConfigElement;
@@ -195,8 +196,14 @@ public class Main {
     public static Object getOrdersWithin24Hours( Request req, Response res) {
         try{ 
             int userID = Integer.parseInt(req.params(":userid"));
-            res.status(200); 
-            return Order.allOrders(userID); 
+            ArrayList<Order> result = Order.allOrders(userID); 
+            if(result.size() > 0){
+                res.status(200); 
+                return result;
+            } else {
+                res.status(500); 
+                return "Cannot find any orders for this user";
+            }
         } catch( NumberFormatException nfe ){
             res.status(400); 
             return "Failed to get results from getOrdersWithin24Hours."; 
@@ -286,12 +293,11 @@ public class Main {
     public static Object getFavoriteRestaurants( Request req, Response res) {
         try{ 
             int userID = Integer.parseInt(req.params(":userid"));
-            JSONArray result = DBUtil.getFavoriteRestaurants(userID);
-            if( result.length() > 0 ){
+            ArrayList<FavoriteRestaurant> result = FavoriteRestaurant.allFavorites(userID);
+            if( result.size() > 0 ){
                 res.status(200); 
                 return result; 
-            }
-            else { 
+            } else { 
                 res.status(500); 
                 return "Cannot get any favorite restaurants for the user"; 
             }
