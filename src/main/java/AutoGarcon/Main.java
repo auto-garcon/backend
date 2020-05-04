@@ -172,8 +172,8 @@ public class Main {
     }
 
     /**
-     * addItemToOrder: Handler for api/restaurant/:restaurantid/order/add
-     * Populates order object with initial fields
+     * submitOrder: Handler for api/restaurant/:restaurantid/order/add
+     * Submits the order once it is all built
      * @param Request - Request object. 
      * @param Response - Response object.  
      */
@@ -286,7 +286,7 @@ public class Main {
     }
 
     /**
-     * submitCompleteOrder: Handler for /api/restaurant/add
+     * submitCompleteOrder: Handler for api/restaurant/:restaurantid/order/submit
      * adds a full order to the database
      * @param Request - Request object. 
      * @param Response - Response object.  

@@ -60,7 +60,7 @@ public class OrderItem {
         }
     }
 
-	public static OrderItem[] orderItems(int orderID) {
+	public static ArrayList<OrderItem> orderItems(int orderID) {
         ResultSet rs = DBUtil.getOrderItems( orderID ); 
         ArrayList<OrderItem> result = new ArrayList<OrderItem>(); 
 
@@ -75,7 +75,7 @@ public class OrderItem {
             return null; 
         }
 
-        return result.toArray( new OrderItem[  result.size() ] );
+        return result;
     }
     
     /**

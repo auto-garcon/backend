@@ -1,7 +1,8 @@
 package AutoGarcon; 
 import java.sql.*; 
 import java.io.File; 
-import java.util.List; 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays; 
 
 /**
@@ -460,7 +461,7 @@ public class DBUtil {
             order.setOrderID( orderID ); 
 
             //add all orderitems to order
-            OrderItem[] orderItems = order.getOrderItems();
+            ArrayList<OrderItem> orderItems = order.getOrderItems();
             for( OrderItem orderItem : orderItems ){
                 stmt = c.prepareCall( "{call AddItemToOrder(?, ?, ?, ?, ?)}" );
                 stmt.setInt("orderIDToAddTo", orderID);

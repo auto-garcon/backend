@@ -1,10 +1,12 @@
 package AutoGarcon;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException; 
+import com.google.gson.JsonSyntaxException;
 import javax.swing.text.html.Option;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.sql.ResultSet; 
 
 
@@ -27,7 +29,7 @@ public class Order {
     private OrderStatus orderStatus;
     private float chargeAmount;
     private int restaurantID;
-    private transient OrderItem[] orderItems;
+    private ArrayList<OrderItem> orderItems;
 
 
     /**
@@ -49,7 +51,7 @@ public class Order {
         this.orderStatus = OrderStatus.OPEN;
         this.chargeAmount = (float) 0.0;
         this.restaurantID = -1;
-        this.orderItems = new OrderItem[0];
+        this.orderItems = new ArrayList<OrderItem>();
     }
 
     public Order( int orderID ){
@@ -86,6 +88,7 @@ public class Order {
         Order order = new Order(); 
 
         try { 
+            //TODO: Figure out why orderItems arent being parsed
             order = gson.fromJson( body, Order.class );
             System.out.println(gson.toJson(order));
 
@@ -140,7 +143,7 @@ public class Order {
         return this.restaurantID;
     }
 
-    public OrderItem[] getOrderItems() {
+    public ArrayList<OrderItem> getOrderItems() {
         return this.orderItems;
     }
 
@@ -185,8 +188,8 @@ public class Order {
         str.append("chargeAmount: " + this.getChargeAmount() + "\n");
         str.append("restaurantID" + this.getRestaurantID() + "\n"); 
         str.append("orderItems:\n");
-        for( int i = 0; i < this.orderItems.length; i++ ){
-            String item = String.format("item: %s,\n", this.orderItems[i].toString() );
+        for( int i = 0; i < this.orderItems.size(); i++ ){
+            String item = String.format("item: %s,\n", this.orderItems.get(i).toString() );
             str.append( item );
         }
         return str.toString();
