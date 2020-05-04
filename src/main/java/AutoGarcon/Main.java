@@ -195,11 +195,11 @@ public class Main {
     public static Object getOrdersWithin24Hours( Request req, Response res) {
         try{ 
             int userID = Integer.parseInt(req.params(":userid"));
-            ResultSet orders = DBUtil.getOrdersWithin24Hours(userID);
-            JSONArray result = ResultSetConverter.convert(orders);
+            // ResultSet orders = DBUtil.getOrdersWithin24Hours(userID);
+            // JSONArray result = ResultSetConverter.convert(orders);
             res.status(200); 
-            return result; 
-        } catch( NumberFormatException | SQLException se){
+            return Order.allOrders(userID); 
+        } catch( NumberFormatException nfe ){
             res.status(400); 
             return "Failed to get results from getOrdersWithin24Hours."; 
         }

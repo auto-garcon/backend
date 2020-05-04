@@ -49,7 +49,6 @@ public class OrderItem {
             this.menuItemID = rs.getInt("itemID");
             //menuID is only used in POST request for adding order item
             this.menuID = -1;
-            this.menuID = -1;
             this.quantity = rs.getInt("quantity"); 
             this.comments = rs.getString("comments"); 
             this.price = rs.getFloat("price"); 
