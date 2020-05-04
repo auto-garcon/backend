@@ -88,7 +88,6 @@ public class Order {
         Order order = new Order(); 
 
         try { 
-            //TODO: Figure out why orderItems arent being parsed
             order = gson.fromJson( body, Order.class );
             System.out.println(gson.toJson(order));
 

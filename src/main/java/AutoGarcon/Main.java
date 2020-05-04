@@ -3,6 +3,9 @@ package AutoGarcon;
 import static spark.Spark.*;
 
 import com.google.gson.*;
+
+import org.json.JSONArray;
+
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -13,6 +16,8 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
 import java.nio.file.Files;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
 
 import javax.servlet.MultipartConfigElement;
@@ -179,6 +184,25 @@ public class Main {
      */
     public static Object submitOrder( Request req, Response res) {
         return "IMPLEMENT ME";
+    }
+
+    /**
+     * getOrdersWithin24Hours: Handler for api/users/:userid/orders
+     * Gets all orders for the user within 24 hours
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getOrdersWithin24Hours( Request req, Response res) {
+        try{ 
+            int userID = Integer.parseInt(req.params(":userid"));
+            ResultSet orders = DBUtil.getOrdersWithin24Hours(userID);
+            JSONArray result = ResultSetConverter.convert(orders);
+            res.status(200); 
+            return result; 
+        } catch( NumberFormatException | SQLException se){
+            res.status(400); 
+            return "Failed to get results from getOrdersWithin24Hours."; 
+        }
     }
 
 
@@ -409,7 +433,7 @@ public class Main {
                 path("/:userid", () -> {
                     get("", Main::endpointNotImplemented );
                     get("/favorites", Main::endpointNotImplemented);
-                    get("/orders", Main::endpointNotImplemented); 
+                    get("/orders", Main::getOrdersWithin24Hours, new JsonTransformer()); 
                 });
             });
             path("/restaurant", () -> {
