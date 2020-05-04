@@ -2,6 +2,9 @@ package AutoGarcon;
 import java.sql.*; 
 import java.io.File; 
 import java.util.List;
+
+import org.json.JSONArray;
+
 import java.util.ArrayList;
 import java.util.Arrays; 
 
@@ -533,6 +536,82 @@ public class DBUtil {
             System.out.printf("SQL Exception while executing markOrderReady.\n" + 
                     "Exception: %s\n", e.toString() );
             return false; 
+        }
+    }
+    
+    /**
+     * addFavoriteRestaurant - adds a favorite restaurant for a user  
+     * @param userID - the id of the user
+     * @param restaurantID - the id of the restaurant
+     */
+    public static boolean addFavoriteRestaurant( int userID, int restaurantID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call AddFavoriteRestaurant(?, ?)}" ); 
+            stmt.setInt("userID", userID);
+            stmt.setInt("rID", restaurantID); 
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing addFavoriteRestaurant.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * removeFavoriteRestaurant - removes a favorite restaurant for a user  
+     * @param userID - the id of the user
+     * @param restaurantID - the id of the restaurant
+     */
+    public static boolean removeFavoriteRestaurant( int userID, int restaurantID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call RemoveFavoriteRestaurant(?, ?)}" ); 
+            stmt.setInt("userID", userID);
+            stmt.setInt("rID", restaurantID); 
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing removeFavoriteRestaurant.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * getFavoriteRestaurants - gets the favorite restaurants for a user
+     * @param userID - the id of the user
+     */
+    public static JSONArray getFavoriteRestaurants( int userID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call GetFavoriteRestaurants(?)}" ); 
+            stmt.setInt("inputUserID", userID);
+            
+            //return response formatted in JSON
+            ResultSet result = stmt.executeQuery(); 
+            return ResultSetConverter.convert(result);
+
+        }
+        catch( Exception e ){
+            System.out.printf("SQL Exception while executing getFavoriteRestaurants.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return new JSONArray();
         }
     }
 

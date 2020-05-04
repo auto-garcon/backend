@@ -204,7 +204,7 @@ public class Main {
     }
 
     /**
-     * markOrderReady: Handler for api/users/:userid/orders
+     * markOrderReady: Handler for api/restaurant/:restaurantid/orders/:orderid/complete
      * Marks an order ready to go out to a table
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -227,6 +227,79 @@ public class Main {
         }
     }
 
+    /**
+     * addFavoriteRestaurant: Handler for api/users/:userid/favorites/restaurant/:restaurantid/add
+     * Marks an order ready to go out to a table
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object addFavoriteRestaurant( Request req, Response res) {
+        try{ 
+            int userID = Integer.parseInt(req.params(":userid"));
+            int restaurantID = Integer.parseInt(req.params(":restaurantid"));
+            boolean success = DBUtil.addFavoriteRestaurant(userID, restaurantID);
+            if( success ){
+                res.status(200); 
+                return "Successfully added favorite restaurant"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to add favorite restaurant"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse user and restaurant IDs in addFavoriteRestaurant."; 
+        }
+    }
+
+    /**
+     * removeFavoriteRestaurant: Handler for api/users/:userid/favorites/restaurant/:restaurantid/remove
+     * Marks an order ready to go out to a table
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object removeFavoriteRestaurant( Request req, Response res) {
+        try{ 
+            int userID = Integer.parseInt(req.params(":userid"));
+            int restaurantID = Integer.parseInt(req.params(":restaurantid"));
+            boolean success = DBUtil.removeFavoriteRestaurant(userID, restaurantID);
+            if( success ){
+                res.status(200); 
+                return "Successfully removeed favorite restaurant"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to remove favorite restaurant"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse user and restaurant IDs in removeFavoriteRestaurant."; 
+        }
+    }
+
+    /**
+     * getFavoriteRestaurants: Handler for api/users/:userid/favorites/
+     * Gets all the favorite restaurants for a user
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getFavoriteRestaurants( Request req, Response res) {
+        try{ 
+            int userID = Integer.parseInt(req.params(":userid"));
+            JSONArray result = DBUtil.getFavoriteRestaurants(userID);
+            if( result.length() > 0 ){
+                res.status(200); 
+                return result; 
+            }
+            else { 
+                res.status(500); 
+                return "Can't get any favorite restaurants for the user"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse userID in getFavoriteRestaurants."; 
+        }
+    }
 
     /**
      * getAllMenu: Handler for /api/restaurant/:restaurantid/menu/
@@ -454,14 +527,23 @@ public class Main {
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );
                 path("/:userid", () -> {
                     get("", Main::endpointNotImplemented );
-                    get("/favorites", Main::endpointNotImplemented);
-                    get("/orders", Main::getOrdersWithin24Hours, new JsonTransformer()); 
+                    get("/orders", Main::getOrdersWithin24Hours, new JsonTransformer());
+                    path("/favorites", () -> {
+                        get("", Main::getFavoriteRestaurants, new JsonTransformer() );
+                        path("/restaurant", () -> {
+                            path("/:restaurantid", () -> {
+                                post("/add", Main::addFavoriteRestaurant, new JsonTransformer() );
+                                post("/remove", Main::removeFavoriteRestaurant, new JsonTransformer() );
+                            });
+                        });
+                        
+                    });
                 });
             });
             path("/restaurant", () -> {
                 post("/add", Main::addRestaurant ); 
                 path("/:restaurantid", () -> {
-                    get("", Main::getRestaurant); 
+                    get("", Main::getRestaurant, new JsonTransformer()); 
                     get("/tables", Main::endpointNotImplemented); 
                     path("/menu", () -> {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
