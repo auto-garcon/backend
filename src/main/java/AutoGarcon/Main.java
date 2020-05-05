@@ -113,7 +113,6 @@ public class Main {
   
         Order order = Order.orderFromJson( req.body() );   
 
-        //System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
         boolean initialized = order.initializeOrder(order); 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
@@ -131,8 +130,8 @@ public class Main {
     }
 
     /**
-     * addItemToOrder: Handler for api/restaurant/:restaurantid/order/additem
-     * Populates order object with initial fields
+     * addItemToOrder: Handler for api/restaurant/:restaurantid/:tablenumber/order/add
+     * Adds item to existing order at the specified table
      * @param Request - Request object. 
      * @param Response - Response object.  
      */
@@ -156,17 +155,47 @@ public class Main {
 
         order.addOrderItem( orderItem ); 
         res.status(200);
-        return "Successfully initialized order.";
+        return "Successfully added item to order.";
     }
 
     /**
-     * submitOrder: Handler for api/restaurant/:restaurantid/order/submit
+     * submitOrder: Handler for api/restaurant/:restaurantid/:tablenumber/order/submit
      * Submits the order once it is all built
      * @param Request - Request object. 
      * @param Response - Response object.  
      */
     public static Object submitOrder( Request req, Response res) {
-        return "IMPLEMENT ME";
+        int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+
+        OrderTracker tracker = OrderTracker.getInstance();
+        Order order = tracker.getOrder( restaurantID, tableNumber );
+
+        if( order == null ){
+            System.out.printf("Tried to add an item to a non-existant order.\n" +
+                    "restaurantID: %d, tableNumber: %d.\n", 
+                    restaurantID, tableNumber 
+            );
+            res.status(400); 
+            return "No open order for this table."; 
+        }
+        if( !order.isDefault() ){
+            boolean saved = order.save(); 
+            if( saved ){
+                tracker.completeOrder(restaurantID, tableNumber);
+                res.status(200); 
+                return "Successfully saved your order"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to save your order"; 
+            }
+        }
+        else {
+            res.status(400); 
+            return "Failed to parse out request for submitting a order"; 
+        }
+
     }
 
     /**
@@ -543,8 +572,8 @@ public class Main {
                             post("/sitdown",Main::endpointNotImplemented); 
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
-                                post("/add", Main::endpointNotImplemented);
-                                post("/submit", Main::endpointNotImplemented);
+                                post("/add", Main::addItemToOrder, new JsonTransformer());
+                                post("/submit", Main::submitOrder, new JsonTransformer());
                             });
                         });
                     });
