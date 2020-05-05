@@ -2,6 +2,9 @@ package AutoGarcon;
 import java.sql.*; 
 import java.io.File; 
 import java.util.List;
+
+import org.json.JSONArray;
+
 import java.util.ArrayList;
 import java.util.Arrays; 
 
@@ -158,6 +161,41 @@ public class DBUtil {
         try{
             result.next(); 
             return result.getInt("restaurantID");
+        } catch (SQLException e){
+            System.out.printf("Failed to get next row in result set.\n Exception: %s\n", e.toString() );
+            return -1;
+        }
+    }
+
+    /**
+     * getTableID: Gets a unique tableID from a restaurantID and table number
+     * @param restaurantID the id of the restaurant.
+     * @param tableNumber the table number (not unique)
+     * @return the table ID that corresponds, or -1 if none found
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static int getTableID( int restaurantID, int tableNumber ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetTableID(?, ?)}" ); 
+            stmt.setInt( "rID", restaurantID );
+            stmt.setInt( "tableNum", tableNumber);
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetRestaurantByTable stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+
+        try{
+            result.next(); 
+            return result.getInt("tableID");
         } catch (SQLException e){
             System.out.printf("Failed to get next row in result set.\n Exception: %s\n", e.toString() );
             return -1;
@@ -524,6 +562,107 @@ public class DBUtil {
             return false; 
         }
         return true; 
+    }
+
+    /**
+     * markOrderReady - marks an order ready to go out to a table  
+     * @param orderID - the id of the order that is now ready
+     */
+    public static boolean markOrderReady( int orderID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call MarkOrderReady(?)}" ); 
+            stmt.setInt("oID", orderID); 
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing markOrderReady.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+    
+    /**
+     * addFavoriteRestaurant - adds a favorite restaurant for a user  
+     * @param userID - the id of the user
+     * @param restaurantID - the id of the restaurant
+     */
+    public static boolean addFavoriteRestaurant( int userID, int restaurantID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call AddFavoriteRestaurant(?, ?)}" ); 
+            stmt.setInt("userId", userID);
+            stmt.setInt("rID", restaurantID); 
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing addFavoriteRestaurant.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * removeFavoriteRestaurant - removes a favorite restaurant for a user  
+     * @param userID - the id of the user
+     * @param restaurantID - the id of the restaurant
+     */
+    public static boolean removeFavoriteRestaurant( int userID, int restaurantID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call RemoveFavoriteRestaurant(?, ?)}" ); 
+            stmt.setInt("uID", userID);
+            stmt.setInt("rID", restaurantID); 
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing removeFavoriteRestaurant.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * getFavoriteRestaurants - gets the favorite restaurants for a user
+     * @param userID - the id of the user
+     */
+    public static ResultSet getFavoriteRestaurants( int userID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        ResultSet result = null;
+
+        try {
+            stmt = c.prepareCall( "{call GetFavoriteRestaurants(?)}" ); 
+            stmt.setInt("inputUserID", userID);
+            
+            //return response formatted in JSON
+            result = stmt.executeQuery(); 
+            return result;
+
+        }
+        catch( Exception e ){
+            System.out.printf("SQL Exception while executing getFavoriteRestaurants.\n" + 
+                    "Exception: %s\n", e.toString() );
+        }
+        return result;
     }
 
     public static Connection connectToDB(){

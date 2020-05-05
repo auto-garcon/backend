@@ -67,6 +67,7 @@ public class Order {
             result.next(); 
             this.orderID = result.getInt("orderID"); 
             this.tableID = result.getInt("tableID");  
+            this.customerID = result.getInt("userID");
             this.orderTime = result.getTimestamp("orderTime");
             int statusInt = result.getInt("orderStatus");
             this.orderStatus = OrderStatus.values()[statusInt];
@@ -80,6 +81,58 @@ public class Order {
                    "Exception: %s.\n", e.toString() );
 
         }
+    }
+
+    /**
+     * Menu: Create an order object from sql result. 
+     * @param qresult - the result of the SQL query.
+     * @return An order object with data from the database.  
+     */
+    public Order( ResultSet qresult ){
+
+        try {
+            this.orderID = qresult.getInt("orderID");
+            this.tableID = qresult.getInt("tableID");
+            this.customerID = qresult.getInt("userID");
+            this.orderTime = qresult.getTimestamp("orderTime");
+            int statusInt = qresult.getInt("orderStatus"); 
+            this.orderStatus = OrderStatus.values()[statusInt];
+            this.chargeAmount = qresult.getFloat("chargeAmount");
+            this.orderItems = OrderItem.orderItems(this.orderID);
+        }
+        catch( SQLException e){
+            System.out.printf("Failed to get the required fields while creating a Order object.\n" + 
+                   "Exception: %s.\n", e.toString() );
+        }
+
+    }
+
+    /**
+     * allOrders: Get all of the orders in an array 
+     * for the specified user. 
+     * @param userID the restaurant to get orders for. 
+     * @return An array of orders. 
+     */
+    public static ArrayList<Order> allOrders( int userID ){
+
+        ResultSet orders = DBUtil.getOrdersWithin24Hours( userID ); 
+        ArrayList<Order> list = new ArrayList<Order>();  
+        boolean hasResult = false; 
+
+        try{ 
+            hasResult = orders.next(); 
+            while( hasResult ){
+                    Order order = new Order( orders ); 
+                    list.add(order); 
+                    hasResult = orders.next(); 
+            }
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to get next row in result set.\n" + 
+                    "Exception: %s\n", e.toString() );
+        }
+
+        return list; 
     }
 
     public static Order orderFromJson( String body ){
