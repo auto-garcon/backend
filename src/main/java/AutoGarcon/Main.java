@@ -3,6 +3,9 @@ package AutoGarcon;
 import static spark.Spark.*;
 import com.google.gson.*;
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.simple.JSONObject;
+
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -15,6 +18,7 @@ import java.nio.file.Files;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException; 
@@ -111,11 +115,17 @@ public class Main {
      */
     public static Object initializeOrder( Request req, Response res) {
   
-        Order order = Order.orderFromJson( req.body() );   
-
+        Order order = Order.orderFromJson( req.body() );
         boolean initialized = order.initializeOrder(order); 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+
+        int tableID = DBUtil.getTableID(restaurantID, tableNumber);
+        if(tableID < 0) {
+            return "Invalid restaurant ID and table number combination";
+        }
+        order.setTableID(tableID);
+
 
         OrderTracker tracker = OrderTracker.getInstance();
         tracker.addOrder(restaurantID, tableNumber, order ); 
@@ -218,6 +228,33 @@ public class Main {
         } catch( NumberFormatException nfe ){
             res.status(400); 
             return "Failed to get results from getOrdersWithin24Hours."; 
+        }
+    }
+
+    /**
+     * sitDownAndGetTableID: Handler for api/restaurant/:restaurantid/:tablenumber/sitdown
+     * Gets the table ID from the query string's restaurantID and table number
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object sitDownAndGetTableID( Request req, Response res) {
+        try{ 
+            int restaurantID = Integer.parseInt(req.params(":restaurantID"));
+            int tableNumber = Integer.parseInt(req.params(":tablenumber"));
+            int tableID = DBUtil.getTableID(restaurantID, tableNumber);
+            if(tableID >= 0){
+                res.status(200);
+                //return the tableID in JSON form
+                HashMap<String,Integer> jsonMap = new HashMap<>();
+                jsonMap.put("tableID", tableID);
+                return new JSONObject(jsonMap);
+            } else {
+                res.status(500); 
+                return "Invalid restaurant ID and table number combination";
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse restaurantID and tableNumber as integers."; 
         }
     }
 
@@ -569,7 +606,7 @@ public class Main {
                     });
                     path("/tables", () -> {
                         path("/:tablenumber", () -> {
-                            post("/sitdown",Main::endpointNotImplemented); 
+                            get("/sitdown",Main::sitDownAndGetTableID, new JsonTransformer()); 
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
                                 post("/add", Main::addItemToOrder, new JsonTransformer());

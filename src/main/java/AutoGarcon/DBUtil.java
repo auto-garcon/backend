@@ -168,6 +168,41 @@ public class DBUtil {
     }
 
     /**
+     * getTableID: Gets a unique tableID from a restaurantID and table number
+     * @param restaurantID the id of the restaurant.
+     * @param tableNumber the table number (not unique)
+     * @return the table ID that corresponds, or -1 if none found
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static int getTableID( int restaurantID, int tableNumber ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetTableID(?, ?)}" ); 
+            stmt.setInt( "rID", restaurantID );
+            stmt.setInt( "tableNum", tableNumber);
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetRestaurantByTable stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+
+        try{
+            result.next(); 
+            return result.getInt("tableID");
+        } catch (SQLException e){
+            System.out.printf("Failed to get next row in result set.\n Exception: %s\n", e.toString() );
+            return -1;
+        }
+    }
+
+    /**
      * getMenu: Gets a specifed menu from a specifed restaurant. 
      * @param restaurantID
      * @param menuID
