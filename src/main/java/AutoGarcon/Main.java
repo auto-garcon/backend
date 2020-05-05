@@ -631,7 +631,7 @@ public class Main {
      */
     public static void startServer() {
 
-        port(8000);
+        port(80);
         // port(443); // HTTPS port
 		staticFiles.location("public");
 
