@@ -13,7 +13,7 @@ public class FavoriteRestaurant {
     private String menuName;
     private int startTime;
     private int endTime;
-    private int restaurantId;
+    private int restaurantID;
     private int userID;
 
     //default constructor
@@ -25,7 +25,7 @@ public class FavoriteRestaurant {
         this.menuName = "";
         this.startTime = 0;
         this.endTime = 0;
-        this.restaurantId = -1;
+        this.restaurantID = -1;
         this.userID = -1;
     }
 
@@ -44,7 +44,7 @@ public class FavoriteRestaurant {
             this.menuName = qresult.getString("menuName");
             this.startTime = qresult.getInt("startTime");
             this.endTime = qresult.getInt("endTime");
-            this.restaurantId = qresult.getInt("restaurantID");
+            this.restaurantID = qresult.getInt("restaurantID");
             this.userID = qresult.getInt("userID");
         }
         catch( SQLException e){
