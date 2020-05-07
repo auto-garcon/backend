@@ -81,9 +81,39 @@ public class Main {
         res.type("image/webp");
         String menuItemID = req.params(":menuitemid"); 
         res.redirect("images/" + menuItemID + ".jpg", 201);
-        System.out.println("hello");
         return "";
     }
+
+
+    public static Object getTableInfo( Request req, Response res ){
+
+        int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+        String alexaID = req.queryParamOrDefault("alexaid", ""); 
+        int tableNumber = Integer.parseInt(req.queryParamOrDefault("tablenumber", "-1")); 
+
+        if( tableNumber == -1 && alexaID.equals("") ){
+            //get all the tables for the restaurant.  
+            //Table[] tables = Table.getAllTables( int restaurantID );  
+            return "Get all tables not implemented yet";
+        }
+        else if( !alexaID.equals("") ){
+            //get the table coresponding to the alexa.
+            Table table = Table.tableFromAlexaID( alexaID );
+            res.status(200); 
+            return table; 
+        }
+        else if( tableNumber != -1 ){
+            res.status(200); 
+            Table table = Table.tableFromTableID( restaurantID, tableNumber);
+            return table; 
+        }
+        else {
+            //this case should not be reachable. 
+            res.status(500); 
+            return "Failed to get a table"; 
+        }
+    }
+
 
     /**
      * addMenu: Handler for /api/restaurant/:restaurantid/menu/add
@@ -114,25 +144,32 @@ public class Main {
      * @param Response - Response object.  
      */
     public static Object initializeOrder( Request req, Response res) {
-  
+
         Order order = Order.orderFromJson( req.body() );
         boolean initialized = order.initializeOrder(order); 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+        int customerID = order.getCustomerID(); 
 
         int tableID = DBUtil.getTableID(restaurantID, tableNumber);
         if(tableID < 0) {
             return "Invalid restaurant ID and table number combination";
         }
         order.setTableID(tableID);
-
+        order.setCustomerID( customerID ); 
 
         OrderTracker tracker = OrderTracker.getInstance();
         tracker.addOrder(restaurantID, tableNumber, order ); 
 
         if (!order.isDefault() && initialized) {
+
+            JSONObject resp = new JSONObject(); 
+            resp.put("customerID", Integer.toString(customerID));
+            resp.put("restaurantID", Integer.toString(restaurantID)); 
+            resp.put("tableNumber", Integer.toString(tableNumber)); 
+
             res.status(200);
-            return "Successfully initialized order.";
+            return res.toString();
         } else {
             res.status(500); 
             return "Error recieving menu"; 
@@ -238,10 +275,13 @@ public class Main {
      * @param Response - Response object.  
      */
     public static Object sitDownAndGetTableID( Request req, Response res) {
+
         try{ 
+            //int customerID = .CustomerID;   
             int restaurantID = Integer.parseInt(req.params(":restaurantID"));
             int tableNumber = Integer.parseInt(req.params(":tablenumber"));
             int tableID = DBUtil.getTableID(restaurantID, tableNumber);
+
             if(tableID >= 0){
                 res.status(200);
                 //return the tableID in JSON form
@@ -598,15 +638,15 @@ public class Main {
                 post("/add", Main::addRestaurant, new JsonTransformer() ); 
                 path("/:restaurantid", () -> {
                     get("", Main::getRestaurant, new JsonTransformer()); 
-                    get("/tables", Main::endpointNotImplemented); 
                     path("/menu", () -> {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
                         post("/add", "application/json", Main::addMenu, new JsonTransformer()); 
                         post("/remove", Main::endpointNotImplemented); 
                     });
                     path("/tables", () -> {
+                        get("", Main::getTableInfo, new JsonTransformer()); 
                         path("/:tablenumber", () -> {
-                            get("/sitdown",Main::sitDownAndGetTableID, new JsonTransformer()); 
+                            //get("/sitdown",Main::sitDownAndGetTableID, new JsonTransformer()); 
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
                                 post("/add", Main::addItemToOrder, new JsonTransformer());
@@ -617,6 +657,7 @@ public class Main {
                     path("/order", () -> {
                         post("/submit", Main::submitCompleteOrder, new JsonTransformer());
                         path("/:orderid", () -> {
+                            //get("", Main::getOrderByID, new JsonTransformer() ); 
                             post("/complete", Main::markOrderReady, new JsonTransformer());
                         });
                     });

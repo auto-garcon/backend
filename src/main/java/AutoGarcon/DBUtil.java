@@ -55,6 +55,60 @@ public class DBUtil {
         return result; 
     }
 
+    public static ResultSet getTable( int restaurantID, int tableNum ){
+
+        ResultSet result = null;
+        Connection c = connectToDB();
+        Statement stmt;
+
+        try{
+            String query = String.format("SELECT" + 
+                    "tableID, alexaID, tableNumber, restaurantID " + 
+                    "FROM RestaurantTables " + 
+                    "WHERE restaurantID = %d AND tableNumber = %d;", 
+                    restaurantID, tableNum 
+            ); 
+            stmt = c.createStatement();  
+            result = stmt.executeQuery( query ); 
+            result.beforeFirst(); 
+            return result; 
+        } catch( SQLException e ){
+            System.out.printf("Failed to query for table. restaurantID %d .\n" +
+                    "Exception: %s\n", restaurantID, e.toString() );
+        }
+        return result;
+    }
+
+    public static ResultSet getTable( String alexaID ){
+
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try{
+            stmt = c.prepareCall("{call GetTableByAlexaID(?)}"); 
+            stmt.setNString("aID", alexaID ); 
+
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue getTablesByAlexaID stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+
+        return result;
+    }
+
+
+    public static ResultSet setAlexaIDForTable( int tableID, String alexaID ){
+
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+        return null;
+    }
+
 
     /**
      * getMenu: Gets all the menus offered by a restaurant.
