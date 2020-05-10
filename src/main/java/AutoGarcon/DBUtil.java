@@ -703,7 +703,7 @@ public class DBUtil {
 
         try {
             stmt = c.prepareCall( "{call RemoveMenu(?)}" ); 
-            stmt.setInt("miD", menuID);
+            stmt.setInt("mID", menuID);
             
             //return true if succeded
             stmt.executeQuery(); 
@@ -779,6 +779,30 @@ public class DBUtil {
         try {
             stmt = c.prepareCall( "{call GetFavoriteRestaurants(?)}" ); 
             stmt.setInt("inputUserID", userID);
+            
+            //return response formatted in JSON
+            result = stmt.executeQuery(); 
+            return result;
+
+        }
+        catch( Exception e ){
+            System.out.printf("SQL Exception while executing getFavoriteRestaurants.\n" + 
+                    "Exception: %s\n", e.toString() );
+        }
+        return result;
+    }
+
+    /**
+     * getFavoriteRestaurants - gets the favorite restaurants for a user
+     * @param userID - the id of the user
+     */
+    public static ResultSet getAllRestaurants(){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        ResultSet result = null;
+
+        try {
+            stmt = c.prepareCall( "{call GetAllRestaurants()}" ); 
             
             //return response formatted in JSON
             result = stmt.executeQuery(); 

@@ -1,6 +1,8 @@
 package AutoGarcon;
 
 import static spark.Spark.*;
+
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import spark.Request;
@@ -9,6 +11,8 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
 import java.nio.file.Files;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.servlet.MultipartConfigElement;
@@ -483,6 +487,30 @@ public class Main {
     }
 
     /**
+     * getAllRestaurants: Handler for /api/restaurant/
+     * gets all the restaurants, can be used to select a random one
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getAllRestaurants( Request req, Response res ){
+        res.status(200); 
+        ResultSet result = DBUtil.getAllRestaurants();
+        if(result == null){
+            res.status(400);
+            return "Failed to get all restaurants";
+        }
+        try{
+            JSONArray jsonResult = ResultSetConverter.convert(result);
+            return jsonResult;
+        } catch( SQLException se ){
+            res.status(500);
+            System.out.printf("SQL Exception while converting all restaurants to correct format.\n" + 
+                "Exception: %s\n", se.toString() );
+            return "Exception while converting all restaurants to correct format.";
+        }
+    }
+
+    /**
      * addUser: When a user is signing in, if they are not 
      * already added to the database, add them to the database.
      * @param User - User object. 
@@ -704,6 +732,7 @@ public class Main {
                 });
             });
             path("/restaurant", () -> {
+                get("", Main::getAllRestaurants, new JsonTransformer() ); 
                 post("/add", Main::addRestaurant, new JsonTransformer() ); 
                 path("/:restaurantid", () -> {
                     get("", Main::getRestaurant, new JsonTransformer()); 
@@ -753,7 +782,7 @@ public class Main {
      */
     public static void startServer() {
 
-        port(80);
+        port(8000);
         // port(443); // HTTPS port
 		staticFiles.location("public");
 
