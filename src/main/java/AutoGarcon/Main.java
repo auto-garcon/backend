@@ -260,7 +260,7 @@ public class Main {
     }
 
     /**
-     * sitDownAndGetTableID: Handler for api/restaurant/:restaurantid/:tablenumber/sitdown
+     * sitDownAndGetTableID: Handler for api/restaurant/:restaurantid/:tablenumber/user/:userid/sitdown
      * Gets the table ID from the query string's restaurantID and table number
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -268,10 +268,15 @@ public class Main {
     public static Object sitDownAndGetTableID( Request req, Response res) {
 
         try{ 
-            //int customerID = .CustomerID;   
+            int userID = Integer.parseInt(req.params(":userid"));
             int restaurantID = Integer.parseInt(req.params(":restaurantID"));
             int tableNumber = Integer.parseInt(req.params(":tablenumber"));
             int tableID = DBUtil.getTableID(restaurantID, tableNumber);
+
+            //attach this user to the table
+            UserTracker tracker = UserTracker.getInstance();
+            tracker.addUser(restaurantID, tableNumber, userID);
+
 
             if(tableID >= 0){
                 res.status(200);
@@ -718,11 +723,15 @@ public class Main {
                     path("/tables", () -> {
                         get("", Main::getTableInfo, new JsonTransformer()); 
                         path("/:tablenumber", () -> {
-                            //get("/sitdown",Main::sitDownAndGetTableID, new JsonTransformer()); 
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
                                 post("/add", Main::addItemToOrder, new JsonTransformer());
                                 post("/submit", Main::submitOrder, new JsonTransformer());
+                            });
+                            path("/users", () -> {
+                                path("/:userid", () -> {
+                                    get("/sitdown",Main::sitDownAndGetTableID, new JsonTransformer()); 
+                                });
                             });
                         });
                     });
