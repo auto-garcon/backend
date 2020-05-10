@@ -172,7 +172,8 @@ public class Main {
             return res.toString();
         } else {
             res.status(500); 
-            return "Error recieving menu"; 
+            System.out.println("isDefault(): " + order.isDefault() );
+            return "Error Recieving new order"; 
         }
     }
 
