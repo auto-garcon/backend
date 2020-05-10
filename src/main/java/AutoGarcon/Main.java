@@ -622,6 +622,29 @@ public class Main {
     }
 
     /**
+     * getOrdersForRestaurant: Handler for api/restaurant/:restaurantid/order/
+     * adds a full order to the database
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getOrdersForRestaurant( Request req, Response res ){
+        try{ 
+            int restaurantID = Integer.parseInt(req.params(":restaurantid"));
+            ArrayList<Order> result = Order.allOrdersForRestaurant(restaurantID); 
+            if(result.size() > 0){
+                res.status(200); 
+                return result;
+            } else {
+                res.status(500); 
+                return "Cannot find any orders for this restaurant";
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse restaurantID in getOrdersForRestaurant."; 
+        }
+    }
+
+    /**
      * getImage: Handler for /api/images/:menuid/:menuitemid 
      * gets the image associated with the specifed menuitem. 
      * @param Request - Request object. 
@@ -765,6 +788,7 @@ public class Main {
                         });
                     });
                     path("/order", () -> {
+                        get("", Main::getOrdersForRestaurant, new JsonTransformer() ); 
                         post("/submit", Main::submitCompleteOrder, new JsonTransformer());
                         path("/:orderid", () -> {
                             //get("", Main::getOrderByID, new JsonTransformer() ); 

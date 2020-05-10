@@ -163,8 +163,8 @@ public class DBUtil {
     }
 
     /**
-     * getOrder: Gets all off the fields for an order by an ID.
-     * @param orderID the id of the order.
+     * getOrder: Gets all off the fields for all orders a user made within 24 hours.
+     * @param userID the id of the user.
      * @return SQL result set containing order data.
      *
      * Result set's cursor will start just before the first row.
@@ -178,6 +178,32 @@ public class DBUtil {
         try { 
             stmt = c.prepareCall("{call GetOrdersInPast24Hours(?)}" ); 
             stmt.setInt( "uID", userID );  
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetOrderByID stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+        return result;
+    }
+
+    /**
+     * getOrdersForRestaurant: Gets all off the fields for every order at a restaurant.
+     * @param restaurantID the id of the restaurant.
+     * @return SQL result set containing order data.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static ResultSet getOrdersForRestaurant( int restaurantID ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetOrdersForRestaurant(?)}" ); 
+            stmt.setInt( "rID", restaurantID );  
             
             result = stmt.executeQuery(); 
             result.beforeFirst(); 

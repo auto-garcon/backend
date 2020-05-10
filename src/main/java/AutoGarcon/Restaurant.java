@@ -2,9 +2,7 @@ package AutoGarcon;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import javax.swing.text.html.Option;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.sql.ResultSet;
 
 
@@ -80,29 +78,6 @@ public class Restaurant {
         }
     }
 
-    // /**
-    //  * Restaurant: Create a restaurant object from sql result. 
-    //  * @param qresult - the result of the SQL query.
-    //  * @return A menu object with data from the database.  
-    //  */
-    // public Restaurant( ResultSet qresult ){
-
-    //     try {
-    //         this.restaurantID = qresult.getInt("restaurantID"); 
-    //         this.menuID = qresult.getInt("menuID"); 
-    //         int statusInt = qresult.getInt("menuStatus"); 
-    //         this.status = MenuStatus.values()[statusInt];  
-    //         this.menuName = qresult.getString("menuName"); 
-    //         this.menuItems = MenuItem.menuItems( this.menuID ); 
-    //         this.timeRanges = TimeRange.timeRanges( this.menuID ); 
-    //     }
-    //     catch( SQLException e){
-    //         System.out.printf("Failed to get the required fields while creating a menu Object.\n" + 
-    //                "Exception: %s.\n", e.toString() );
-    //     }
-
-    // }
-
     public static Restaurant restaurantFromJson( String body){
 
         Gson gson = new Gson(); 
@@ -116,33 +91,6 @@ public class Restaurant {
         }
         return restaurant; 
     }
-
-    // /**
-    //  * allRestaurants: Get all of the existing restaurants in an array 
-    //  * @return An array of restaurants. 
-    //  */
-    // public static Restaurant[] allRestaurants( ){
-
-    //     ResultSet restaurants = DBUtil.getAllRestaurants(); 
-    //     ArrayList<Restaurant> list = new ArrayList<Restaurant>();  
-    //     boolean hasResult = false; 
-
-    //     try{ 
-    //         hasResult = restaurants.next(); 
-    //         while( hasResult ){
-    //                 Restaurant restaurant = new Restaurant( restaurants ); 
-    //                 list.add(restaurant); 
-    //                 hasResult = restaurants.next(); 
-    //         }
-    //     }
-    //     catch( SQLException e ){
-    //         System.out.printf("Failed to get next row in result set.\n" + 
-    //                 "Exception: %s\n", e.toString() );
-    //     }
-
-    //     return list.toArray( new Restaurant[ list.size() ] ); 
-    // }
-
 
     public boolean isDefault(){
         return this.restaurantName.equals("Default Restaurant"); 

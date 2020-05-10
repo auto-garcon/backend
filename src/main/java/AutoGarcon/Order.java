@@ -110,12 +110,40 @@ public class Order {
     /**
      * allOrders: Get all of the orders in an array 
      * for the specified user. 
-     * @param userID the restaurant to get orders for. 
+     * @param userID the user to get orders for. 
      * @return An array of orders. 
      */
     public static ArrayList<Order> allOrders( int userID ){
 
         ResultSet orders = DBUtil.getOrdersWithin24Hours( userID ); 
+        ArrayList<Order> list = new ArrayList<Order>();  
+        boolean hasResult = false; 
+
+        try{ 
+            hasResult = orders.next(); 
+            while( hasResult ){
+                    Order order = new Order( orders ); 
+                    list.add(order); 
+                    hasResult = orders.next(); 
+            }
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to get next row in result set.\n" + 
+                    "Exception: %s\n", e.toString() );
+        }
+
+        return list; 
+    }
+
+    /**
+     * allOrdersForRestaurant: Get all of the orders in an array 
+     * for the specified restaurant. 
+     * @param userID the restaurant to get orders for. 
+     * @return An array of orders. 
+     */
+    public static ArrayList<Order> allOrdersForRestaurant( int restaurantID ){
+
+        ResultSet orders = DBUtil.getOrdersForRestaurant( restaurantID ); 
         ArrayList<Order> list = new ArrayList<Order>();  
         boolean hasResult = false; 
 
