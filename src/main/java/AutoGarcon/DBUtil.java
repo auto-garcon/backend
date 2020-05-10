@@ -1,10 +1,6 @@
 package AutoGarcon; 
 import java.sql.*; 
-import java.io.File; 
 import java.util.List;
-
-import org.json.JSONArray;
-
 import java.util.ArrayList;
 import java.util.Arrays; 
 
@@ -698,7 +694,7 @@ public class DBUtil {
 
         try {
             stmt = c.prepareCall( "{call AddFavoriteRestaurant(?, ?)}" ); 
-            stmt.setInt("userId", userID);
+            stmt.setInt("uID", userID);
             stmt.setInt("rID", restaurantID); 
             
             //return true if succeded

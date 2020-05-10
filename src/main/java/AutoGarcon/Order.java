@@ -1,9 +1,7 @@
 package AutoGarcon;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import javax.swing.text.html.Option;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;

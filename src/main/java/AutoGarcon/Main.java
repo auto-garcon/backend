@@ -265,7 +265,7 @@ public class Main {
                 return result;
             } else {
                 res.status(500); 
-                return "Cannot find any orders for this user";
+                return "Cannot find any orders for this user within 24 hours";
             }
         } catch( NumberFormatException nfe ){
             res.status(400); 
@@ -464,7 +464,7 @@ public class Main {
     public static Object getFavoriteRestaurants( Request req, Response res) {
         try{ 
             int userID = Integer.parseInt(req.params(":userid"));
-            ArrayList<FavoriteRestaurant> result = FavoriteRestaurant.allFavorites(userID);
+            ArrayList<Restaurant> result = Restaurant.getFavorites(userID);
             if( result.size() > 0 ){
                 res.status(200); 
                 return result; 
