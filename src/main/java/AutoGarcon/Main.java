@@ -142,7 +142,6 @@ public class Main {
     public static Object initializeOrder( Request req, Response res) {
 
         Order order = new Order();
-        boolean initialized = order.initializeOrder(order); 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
 
@@ -161,7 +160,8 @@ public class Main {
             return "Invalid restaurant ID and table number combination";
         }
         order.setTableID(tableID);
-        order.setCustomerID( customerID ); 
+        order.setCustomerID( customerID );
+        boolean initialized = order.initializeOrder(order); 
 
         OrderTracker tracker = OrderTracker.getInstance();
         tracker.addOrder(restaurantID, tableNumber, order ); 
@@ -174,10 +174,10 @@ public class Main {
             resp.put("tableNumber", Integer.toString(tableNumber)); 
 
             res.status(200);
-            return res.toString();
+            return "Successfully initialized order";
         } else {
             res.status(500); 
-            return "Error recieving menu"; 
+            return "Error initializing order"; 
         }
     }
 
