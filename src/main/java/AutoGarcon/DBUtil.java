@@ -36,15 +36,11 @@ public class DBUtil {
 
         ResultSet result = null;
         Connection c = connectToDB();
-        Statement stmt;
+        CallableStatement stmt;
         try {
-            String query = String.format( "SELECT " + 
-                    "restaurantId, restaurantName, description, " + 
-                    "address, salesTax, city, state, zipCode, country " + 
-                    "FROM Restaurant where restaurantId = %d;", restaurantID 
-            ); 
-            stmt = c.createStatement(); 
-            result = stmt.executeQuery( query );  
+            stmt = c.prepareCall("{call GetRestaurantByID(?)}" ); 
+            stmt.setInt( "rID", restaurantID );  
+            result = stmt.executeQuery();  
             result.beforeFirst(); 
             return result;
 
@@ -59,17 +55,13 @@ public class DBUtil {
 
         ResultSet result = null;
         Connection c = connectToDB();
-        Statement stmt;
+        CallableStatement stmt;
 
         try{
-            String query = String.format("SELECT" + 
-                    "tableID, alexaID, tableNumber, restaurantID " + 
-                    "FROM RestaurantTables " + 
-                    "WHERE restaurantID = %d AND tableNumber = %d;", 
-                    restaurantID, tableNum 
-            ); 
-            stmt = c.createStatement();  
-            result = stmt.executeQuery( query ); 
+            stmt = c.prepareCall("{call GetTableID(?, ?)}" ); 
+            stmt.setInt( "rID", restaurantID );
+            stmt.setInt( "tableNum", tableNum );  
+            result = stmt.executeQuery();  
             result.beforeFirst(); 
             return result; 
         } catch( SQLException e ){

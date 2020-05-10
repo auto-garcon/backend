@@ -24,6 +24,8 @@ public class Restaurant {
     private int zipCode;
     private String country; 
     private String state; 
+    private String primaryColor;
+    private String secondaryColor;
     private int numTables; 
 
 
@@ -68,8 +70,9 @@ public class Restaurant {
             this.city = result.getString("city");
             this.state = result.getString("state"); 
             this.zipCode = result.getInt("zipCode"); 
-            this.country = result.getString("country"); 
-
+            this.country = result.getString("country");
+            this.primaryColor = result.getString("primaryColor");
+            this.secondaryColor = result.getString("secondaryColor");
         }
         catch( SQLException e ){
             System.out.printf("Failed to get the required fields while creating a restaurant Object.\n" + 
