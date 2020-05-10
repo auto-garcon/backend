@@ -133,6 +133,34 @@ public class Menu {
     }
 
     /**
+     * allAvailableMenus: Get all of the available menus in an array 
+     * for the specified restaurant and current time
+     * @param restaurantID the restaurant to get menus for. 
+     * @return An array of menus. 
+     */
+    public static Menu[] allAvailableMenus( int restaurantID, int curTime ){
+
+        ResultSet menus = DBUtil.getAvailableMenus( restaurantID, curTime ); 
+        ArrayList<Menu> list = new ArrayList<Menu>();  
+        boolean hasResult = false; 
+
+        try{ 
+            hasResult = menus.next(); 
+            while( hasResult ){
+                    Menu menu = new Menu( menus ); 
+                    list.add(menu); 
+                    hasResult = menus.next(); 
+            }
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to get next row in result set.\n" + 
+                    "Exception: %s\n", e.toString() );
+        }
+
+        return list.toArray( new Menu[ list.size() ] ); 
+    }
+
+    /**
      * menuFromJson: Create a new Menu objet from Json.
      * @param body JSON String representing the request paramaters for 
      *  a new Menu Object.

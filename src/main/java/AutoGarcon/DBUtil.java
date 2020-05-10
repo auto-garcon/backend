@@ -137,6 +137,34 @@ public class DBUtil {
     }
 
     /**
+     * getAvailableMenus: Gets all the menus offered by a restaurant at the current time
+     * @param restaurantID the id of the restaurant.
+     * @param curTime current time in integer form
+     * @return SQL result set containing menu data.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static ResultSet getAvailableMenus( int restaurantID, int curTime ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetAccessibleMenus(?, ?)}" ); 
+            stmt.setInt( "rID", restaurantID );
+            stmt.setInt( "currentTime", curTime);
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetMenusByRestaurantId stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+        return result;
+    }
+
+    /**
      * getOrder: Gets all off the fields for an order by an ID.
      * @param orderID the id of the order.
      * @return SQL result set containing order data.

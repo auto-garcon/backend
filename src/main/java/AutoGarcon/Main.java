@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException; 
@@ -487,6 +489,45 @@ public class Main {
     }
 
     /**
+     * getAllAvailableMenus: Handler for /api/restaurant/:restaurantid/menu/available
+     * gets all the available menus for the specified restaurant.  
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getAllAvailableMenus( Request req, Response res ){
+
+        try{
+            int currentTime = getCurrentTimestamp();
+            System.out.println("--------- CURRENT TIME = " + currentTime + " ---------------");
+            int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+            res.status(200); 
+            return Menu.allAvailableMenus( restaurantID, currentTime ); 
+        } catch( NumberFormatException nfe){
+            res.status(400); 
+            return "Failed to parse restaurantID as an integer."; 
+        }
+    }
+
+    /**
+     * getCurrentTimestamp: Gets the current time in integer form (Ex: 2:30 PM = 1430)
+     */
+    private static int getCurrentTimestamp(){
+        Date currentTime = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(currentTime);
+        String hour = String.valueOf(cal.get(Calendar.HOUR_OF_DAY));
+        String minute = "";
+        //check if need to prepend "0" to minute
+        if(cal.get(Calendar.MINUTE) > 10){
+            minute = String.valueOf(cal.get(Calendar.MINUTE));
+        } else {
+            minute = "0" + String.valueOf(cal.get(Calendar.MINUTE));
+        }
+        String timestamp = hour.concat(minute);
+        return Integer.parseInt(timestamp);
+    }
+
+    /**
      * getAllRestaurants: Handler for /api/restaurant/
      * gets all the restaurants, can be used to select a random one
      * @param Request - Request object. 
@@ -761,6 +802,7 @@ public class Main {
                     get("", Main::getRestaurant, new JsonTransformer()); 
                     path("/menu", () -> {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
+                        get("/available", Main::getAllAvailableMenus, new JsonTransformer() ); 
                         post("/add", "application/json", Main::addMenu, new JsonTransformer()); 
                         path("/:menuid", () -> {
                             post("/remove", Main::removeMenu, new JsonTransformer()); 
