@@ -141,15 +141,23 @@ public class Main {
      */
     public static Object initializeOrder( Request req, Response res) {
 
-        Order order = Order.orderFromJson( req.body() );
+        Order order = new Order();
         boolean initialized = order.initializeOrder(order); 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
-        int customerID = order.getCustomerID(); 
+
+        //get the most current user at the table
+        UserTracker userTracker = UserTracker.getInstance();
+        Integer customerID = userTracker.getUserID(restaurantID, tableNumber);
+        if(customerID == null){
+            res.status(400);
+            return "There is no user at this table yet";
+        }
 
         //set the tableID and customer ID to make the createOrder database call later
         int tableID = DBUtil.getTableID(restaurantID, tableNumber);
         if(tableID < 0) {
+            res.status(400);
             return "Invalid restaurant ID and table number combination";
         }
         order.setTableID(tableID);
@@ -498,7 +506,6 @@ public class Main {
 
         try{
             int currentTime = getCurrentTimestamp();
-            System.out.println("--------- CURRENT TIME = " + currentTime + " ---------------");
             int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
             res.status(200); 
             return Menu.allAvailableMenus( restaurantID, currentTime ); 
@@ -848,7 +855,7 @@ public class Main {
      */
     public static void startServer() {
 
-        port(8000);
+        port(80);
         // port(443); // HTTPS port
 		staticFiles.location("public");
 
