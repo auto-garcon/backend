@@ -518,7 +518,7 @@ public class Main {
     /**
      * getCurrentTimestamp: Gets the current time in integer form (Ex: 2:30 PM = 1430)
      */
-    private static int getCurrentTimestamp(){
+    public static int getCurrentTimestamp(){
         Date currentTime = new Date();
         Calendar cal = Calendar.getInstance();
         cal.setTime(currentTime);
@@ -689,7 +689,7 @@ public class Main {
     }
 
     /**
-     * getOrdersForRestaurant: Handler for api/restaurant/:restaurantid/order/
+     * getOrdersForRestaurant: Handler for api/restaurant/:restaurantid/order
      * adds a full order to the database
      * @param Request - Request object. 
      * @param Response - Response object.  

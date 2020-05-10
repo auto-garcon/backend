@@ -76,7 +76,8 @@ public class Restaurant {
             this.primaryColor = result.getString("primaryColor");
             this.secondaryColor = result.getString("secondaryColor");
             if(withMenus){
-                this.menus = Menu.allMenus(this.restaurantID);
+                int currentTime = Main.getCurrentTimestamp();
+                this.menus = Menu.allAvailableMenus(this.restaurantID, currentTime);
             }
         }
         catch( SQLException e ){
