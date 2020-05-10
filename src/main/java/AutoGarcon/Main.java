@@ -608,7 +608,26 @@ public class Main {
 
         try {
             int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
-            Restaurant restaurant = new Restaurant( restaurantID );  
+            Restaurant restaurant = new Restaurant( restaurantID, false );  
+            return restaurant; 
+
+        } catch( NumberFormatException nfe){
+            res.status(400); 
+            return "Failed to parse restaurantID as an integer.";
+        }
+    }
+
+    /**
+     * getRestaurantWithMenus: Handler for /api/restaurant/:restaurantid/withmenus  
+     * gets info about the specifed restaurantID.
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getRestaurantWithMenus( Request req, Response res ){
+
+        try {
+            int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+            Restaurant restaurant = new Restaurant( restaurantID, true );  
             return restaurant; 
 
         } catch( NumberFormatException nfe){
@@ -807,6 +826,7 @@ public class Main {
                 post("/add", Main::addRestaurant, new JsonTransformer() ); 
                 path("/:restaurantid", () -> {
                     get("", Main::getRestaurant, new JsonTransformer()); 
+                    get("/withmenus", Main::getRestaurantWithMenus, new JsonTransformer()); 
                     path("/menu", () -> {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
                         get("/available", Main::getAllAvailableMenus, new JsonTransformer() ); 

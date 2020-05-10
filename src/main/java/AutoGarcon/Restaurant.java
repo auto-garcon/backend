@@ -3,6 +3,7 @@ package AutoGarcon;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.sql.ResultSet;
 
 
@@ -26,6 +27,7 @@ public class Restaurant {
     private String state; 
     private String primaryColor;
     private String secondaryColor;
+    private Menu[] menus;
     private int numTables; 
 
 
@@ -51,7 +53,7 @@ public class Restaurant {
         this.address = ""; 
     }
 
-    public Restaurant( int restaurantID ){
+    public Restaurant( int restaurantID, boolean withMenus){
         ResultSet result = DBUtil.getRestaurant( restaurantID ); 
 
         //if result is null return a default restaurant. 
@@ -73,6 +75,9 @@ public class Restaurant {
             this.country = result.getString("country");
             this.primaryColor = result.getString("primaryColor");
             this.secondaryColor = result.getString("secondaryColor");
+            if(withMenus){
+                this.menus = Menu.allMenus(this.restaurantID);
+            }
         }
         catch( SQLException e ){
             System.out.printf("Failed to get the required fields while creating a restaurant Object.\n" + 
