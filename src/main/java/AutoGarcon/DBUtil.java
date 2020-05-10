@@ -556,7 +556,6 @@ public class DBUtil {
             stmt.setNString("firstName", user.getFirstName());
             stmt.setNString("lastName", user.getLastName());
             stmt.setNString("email", user.getEmail());
-            stmt.setNString("token", user.getToken());
 
             result = stmt.executeQuery();
             result.next();
@@ -689,6 +688,80 @@ public class DBUtil {
         }
         catch( SQLException e ){
             System.out.printf("SQL Exception while executing removeFavoriteRestaurant.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * removeMenu - removes a menu from the database
+     * @param menuID - the id of the menu
+     */
+    public static boolean removeMenu( int menuID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call RemoveMenu(?)}" ); 
+            stmt.setInt("miD", menuID);
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing removeMenu.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * removeMenuItem - removes a menu item from all menus
+     * @param itemID - the id of the item
+     */
+    public static boolean removeMenuItem( int itemID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call RemoveMenuItem(?)}" ); 
+            stmt.setInt("iID", itemID);
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing removeMenuItem.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * removeMenuItemFromMenu - removes a menu item from the specified menu
+     * @param itemID - the id of the item
+     * @param menuID - the id of the menu
+     */
+    public static boolean removeItemFromMenu( int itemID, int menuID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call RemoveItemFromMenu(?, ?)}" ); 
+            stmt.setInt("iID", itemID);
+            stmt.setInt("mID", menuID);
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing removeItemFromMenu.\n" + 
                     "Exception: %s\n", e.toString() );
             return false; 
         }

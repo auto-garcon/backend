@@ -1,29 +1,19 @@
 package AutoGarcon;
 
 import static spark.Spark.*;
-import com.google.gson.*;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 
 import spark.Request;
 import spark.Response;
-import spark.Route;
-import java.lang.reflect.Type;
-import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
 import java.nio.file.Files;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException; 
 import javax.servlet.http.HttpServletResponse; 
-import javax.imageio.ImageIO; 
 
 
 /**
@@ -151,6 +141,7 @@ public class Main {
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
         int customerID = order.getCustomerID(); 
 
+        //set the tableID and customer ID to make the createOrder database call later
         int tableID = DBUtil.getTableID(restaurantID, tableNumber);
         if(tableID < 0) {
             return "Invalid restaurant ID and table number combination";
@@ -360,7 +351,7 @@ public class Main {
             boolean success = DBUtil.removeFavoriteRestaurant(userID, restaurantID);
             if( success ){
                 res.status(200); 
-                return "Successfully removeed favorite restaurant"; 
+                return "Successfully removed favorite restaurant"; 
             }
             else { 
                 res.status(500); 
@@ -369,6 +360,79 @@ public class Main {
         } catch( NumberFormatException nfe ){
             res.status(400); 
             return "Failed to parse user and restaurant IDs in removeFavoriteRestaurant."; 
+        }
+    }
+
+     /**
+     * removeMenu: Handler for api/restaurant/:restaurantid/menu/:menuid/remove
+     * Removes a menu from the database (marks it inactive)
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object removeMenu( Request req, Response res) {
+        try{ 
+            int menuID = Integer.parseInt(req.params(":menuid"));
+            boolean success = DBUtil.removeMenu(menuID);
+            if( success ){
+                res.status(200); 
+                return "Successfully removed menu"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to remove menu"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse menu and restaurant IDs in removeMenu."; 
+        }
+    }
+
+    /**
+     * removeMenuItem: Handler for api/restaurant/:restaurantid/menu/:menuid/item/:itemid/removefromall
+     * Removes a menu from the database (marks it inactive)
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object removeMenuItem( Request req, Response res) {
+        try{ 
+            int itemID = Integer.parseInt(req.params(":itemid"));
+            boolean success = DBUtil.removeMenuItem(itemID);
+            if( success ){
+                res.status(200); 
+                return "Successfully removed menu item"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to remove menu item"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse menu and restaurant IDs in removeMenuItem."; 
+        }
+    }
+
+    /**
+     * removeMenuItem: Handler for api/restaurant/:restaurantid/menu/:menuid/item/:itemid/remove
+     * Removes a menu from the specified menu
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object removeMenuItemFromMenu( Request req, Response res) {
+        try{ 
+            int itemID = Integer.parseInt(req.params(":itemid"));
+            int menuID = Integer.parseInt(req.params(":menuid"));
+            boolean success = DBUtil.removeItemFromMenu(itemID, menuID);
+            if( success ){
+                res.status(200); 
+                return "Successfully removed menu item"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to remove menu item"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse menu and restaurant IDs in removeMenuItemFromMenu."; 
         }
     }
 
@@ -641,7 +705,15 @@ public class Main {
                     path("/menu", () -> {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
                         post("/add", "application/json", Main::addMenu, new JsonTransformer()); 
-                        post("/remove", Main::endpointNotImplemented); 
+                        path("/:menuid", () -> {
+                            post("/remove", Main::removeMenu, new JsonTransformer()); 
+                            path("/item", () -> {
+                                path("/:itemid", () -> {
+                                    post("/removefromall", Main::removeMenuItem, new JsonTransformer()); 
+                                    post("/remove", Main::removeMenuItemFromMenu, new JsonTransformer());
+                                });
+                            });
+                        });
                     });
                     path("/tables", () -> {
                         get("", Main::getTableInfo, new JsonTransformer()); 
