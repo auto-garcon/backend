@@ -1,9 +1,10 @@
 package AutoGarcon;
-import com.google.gson.Gson; 
-import com.google.gson.JsonSyntaxException; 
-import javax.swing.text.html.Option;
-import java.sql.SQLException; 
-import java.sql.ResultSet; 
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.sql.ResultSet;
 
 
 /**
@@ -24,6 +25,9 @@ public class Restaurant {
     private int zipCode;
     private String country; 
     private String state; 
+    private String primaryColor;
+    private String secondaryColor;
+    private Menu[] menus;
     private int numTables; 
 
 
@@ -49,7 +53,7 @@ public class Restaurant {
         this.address = ""; 
     }
 
-    public Restaurant( int restaurantID ){
+    public Restaurant( int restaurantID, boolean withMenus){
         ResultSet result = DBUtil.getRestaurant( restaurantID ); 
 
         //if result is null return a default restaurant. 
@@ -68,12 +72,59 @@ public class Restaurant {
             this.city = result.getString("city");
             this.state = result.getString("state"); 
             this.zipCode = result.getInt("zipCode"); 
-            this.country = result.getString("country"); 
-
+            this.country = result.getString("country");
+            this.primaryColor = result.getString("primaryColor");
+            this.secondaryColor = result.getString("secondaryColor");
+            if(withMenus){
+                int currentTime = Main.getCurrentTimestamp();
+                this.menus = Menu.allAvailableMenus(this.restaurantID, currentTime);
+            }
         }
         catch( SQLException e ){
             System.out.printf("Failed to get the required fields while creating a restaurant Object.\n" + 
                    "Exception: %s.\n", e.toString() );
+
+        }
+    }
+
+    public static ArrayList<Restaurant> getFavorites(int userID){
+        ResultSet result = DBUtil.getFavoriteRestaurants( userID );
+        boolean hasResult;
+        ArrayList<Restaurant> list = new ArrayList<Restaurant>();  
+
+        //if result is null return an empty list
+        if( result == null ){
+            return list;
+        }
+
+        try{
+            hasResult = result.next();
+            while(hasResult){
+                //fill restaurant object
+                Restaurant restaurant = new Restaurant();
+                restaurant.restaurantID = result.getInt("restaurantID"); 
+                restaurant.restaurantName = result.getString("restaurantName");  
+                restaurant.description = result.getString("description"); 
+                restaurant.address = result.getString("address"); 
+                restaurant.city = result.getString("city");
+                restaurant.state = result.getString("state"); 
+                restaurant.zipCode = result.getInt("zipCode"); 
+                restaurant.country = result.getString("country");
+                restaurant.primaryColor = result.getString("primaryColor");
+                restaurant.secondaryColor = result.getString("secondaryColor");
+                restaurant.menus = Menu.allMenusWithoutItems(restaurant.restaurantID);
+                
+                //add to list
+                list.add(restaurant);
+                hasResult = result.next();
+            }
+            return list;
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to get the required fields while creating a restaurant Object.\n" + 
+                   "Exception: %s.\n", e.toString() );
+            //return empty list
+            return new ArrayList<Restaurant>();
 
         }
     }
@@ -91,7 +142,6 @@ public class Restaurant {
         }
         return restaurant; 
     }
-
 
     public boolean isDefault(){
         return this.restaurantName.equals("Default Restaurant"); 
@@ -148,6 +198,71 @@ public class Restaurant {
 
     public int getNumTables() {
         return this.numTables; 
+    }
+
+    public void setRestaurantID(int restaurantID) {
+        this.restaurantID = restaurantID;
+    }
+
+    public String getRestaurantName() {
+        return this.restaurantName;
+    }
+
+    public void setRestaurantName(String restaurantName) {
+        this.restaurantName = restaurantName;
+    }
+    public void setAvailableMenus(int[] availableMenus) {
+        this.availableMenus = availableMenus;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public int getZipCode() {
+        return this.zipCode;
+    }
+
+    public void setZipCode(int zipCode) {
+        this.zipCode = zipCode;
+    }
+    public void setCountry(String country) {
+        this.country = country;
+    }
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getPrimaryColor() {
+        return this.primaryColor;
+    }
+
+    public void setPrimaryColor(String primaryColor) {
+        this.primaryColor = primaryColor;
+    }
+
+    public String getSecondaryColor() {
+        return this.secondaryColor;
+    }
+
+    public void setSecondaryColor(String secondaryColor) {
+        this.secondaryColor = secondaryColor;
+    }
+
+    public Menu[] getMenus() {
+        return this.menus;
+    }
+
+    public void setMenus(Menu[] menus) {
+        this.menus = menus;
+    }
+    public void setNumTables(int numTables) {
+        this.numTables = numTables;
     }
 
     public String toString() {

@@ -1,16 +1,12 @@
 package AutoGarcon;
 
 import static spark.Spark.*;
-import com.google.gson.*;
-import org.json.JSONArray;
-import org.json.JSONException;
+
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import spark.Request;
 import spark.Response;
-import spark.Route;
-import java.lang.reflect.Type;
-import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
@@ -18,12 +14,12 @@ import java.nio.file.Files;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException; 
 import javax.servlet.http.HttpServletResponse; 
-import javax.imageio.ImageIO; 
 
 
 /**
@@ -85,6 +81,11 @@ public class Main {
     }
 
 
+    /**
+     * getTableInfo: gets information about a table 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
     public static Object getTableInfo( Request req, Response res ){
 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
@@ -100,11 +101,13 @@ public class Main {
             //get the table coresponding to the alexa.
             Table table = Table.tableFromAlexaID( alexaID );
             res.status(200); 
+            table.updateCurrentOrder(); 
             return table; 
         }
         else if( tableNumber != -1 ){
             res.status(200); 
             Table table = Table.tableFromTableID( restaurantID, tableNumber);
+            table.updateCurrentOrder(); 
             return table; 
         }
         else {
@@ -142,21 +145,25 @@ public class Main {
      * Populates order object with initial fields
      * @param Request - Request object. 
      * @param Response - Response object.  
+     *
+     * initalize an order for a particular restaurant and table.  
+     * Order object should include the customer ID.   
      */
     public static Object initializeOrder( Request req, Response res) {
 
-        Order order = Order.orderFromJson( req.body() );
-        boolean initialized = order.initializeOrder(order); 
+        Order order = Order.orderFromJson( req.body() );  
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
         int customerID = order.getCustomerID(); 
 
+        //set the tableID 
         int tableID = DBUtil.getTableID(restaurantID, tableNumber);
         if(tableID < 0) {
+            res.status(400);
             return "Invalid restaurant ID and table number combination";
         }
         order.setTableID(tableID);
-        order.setCustomerID( customerID ); 
+        boolean initialized = order.initializeOrder(order); 
 
         OrderTracker tracker = OrderTracker.getInstance();
         tracker.addOrder(restaurantID, tableNumber, order ); 
@@ -169,10 +176,11 @@ public class Main {
             resp.put("tableNumber", Integer.toString(tableNumber)); 
 
             res.status(200);
-            return res.toString();
+            return "Successfully initialized order";
         } else {
             res.status(500); 
-            return "Error recieving menu"; 
+            System.out.println("isDefault(): " + order.isDefault() );
+            return "Error Recieving new order"; 
         }
     }
 
@@ -203,6 +211,33 @@ public class Main {
         order.addOrderItem( orderItem ); 
         res.status(200);
         return "Successfully added item to order.";
+    }
+
+
+    /**
+     * removeItemFromOrder: Removes an orderitem from an active order.
+     *
+     */
+    public static Object removeItemFromOrder( Request req, Response res ){
+        OrderItem item = OrderItem.orderItemFromJson( req.body() );  
+        int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+
+        OrderTracker tracker = OrderTracker.getInstance();
+        Order order = tracker.getOrder( restaurantID, tableNumber ); 
+
+        if( order == null ){
+            System.out.printf("Tried to add an item to a non-existant order.\n" +
+                    "restaurantID: %d, tableNumber: %d.\n", 
+                    restaurantID, tableNumber 
+            );
+            res.status(400); 
+            return "No open order for this table."; 
+        }
+
+        order.removeOrderItem( item.getOrderItemID() ); 
+        res.status(200); 
+        return "Sucessfully removed orderItem"; 
     }
 
     /**
@@ -260,7 +295,7 @@ public class Main {
                 return result;
             } else {
                 res.status(500); 
-                return "Cannot find any orders for this user";
+                return "Cannot find any orders for this user within 24 hours";
             }
         } catch( NumberFormatException nfe ){
             res.status(400); 
@@ -269,7 +304,7 @@ public class Main {
     }
 
     /**
-     * sitDownAndGetTableID: Handler for api/restaurant/:restaurantid/:tablenumber/sitdown
+     * sitDownAndGetTableID: Handler for api/restaurant/:restaurantid/:tablenumber/user/:userid/sitdown
      * Gets the table ID from the query string's restaurantID and table number
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -277,10 +312,15 @@ public class Main {
     public static Object sitDownAndGetTableID( Request req, Response res) {
 
         try{ 
-            //int customerID = .CustomerID;   
+            int userID = Integer.parseInt(req.params(":userid"));
             int restaurantID = Integer.parseInt(req.params(":restaurantID"));
             int tableNumber = Integer.parseInt(req.params(":tablenumber"));
             int tableID = DBUtil.getTableID(restaurantID, tableNumber);
+
+            //attach this user to the table
+            UserTracker tracker = UserTracker.getInstance();
+            tracker.addUser(restaurantID, tableNumber, userID);
+
 
             if(tableID >= 0){
                 res.status(200);
@@ -360,7 +400,7 @@ public class Main {
             boolean success = DBUtil.removeFavoriteRestaurant(userID, restaurantID);
             if( success ){
                 res.status(200); 
-                return "Successfully removeed favorite restaurant"; 
+                return "Successfully removed favorite restaurant"; 
             }
             else { 
                 res.status(500); 
@@ -373,6 +413,79 @@ public class Main {
     }
 
     /**
+    * removeMenu: Handler for api/restaurant/:restaurantid/menu/:menuid/remove
+    * Removes a menu from the database (marks it inactive)
+    * @param Request - Request object. 
+    * @param Response - Response object.  
+    */
+    public static Object removeMenu( Request req, Response res) {
+        try{ 
+            int menuID = Integer.parseInt(req.params(":menuid"));
+            boolean success = DBUtil.removeMenu(menuID);
+            if( success ){
+                res.status(200); 
+                return "Successfully removed menu"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to remove menu"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse menu and restaurant IDs in removeMenu."; 
+        }
+    }
+
+    /**
+     * removeMenuItem: Handler for api/restaurant/:restaurantid/menu/:menuid/item/:itemid/removefromall
+     * Removes a menu from the database (marks it inactive)
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object removeMenuItem( Request req, Response res) {
+        try{ 
+            int itemID = Integer.parseInt(req.params(":itemid"));
+            boolean success = DBUtil.removeMenuItem(itemID);
+            if( success ){
+                res.status(200); 
+                return "Successfully removed menu item"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to remove menu item"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse menu and restaurant IDs in removeMenuItem."; 
+        }
+    }
+
+    /**
+     * removeMenuItem: Handler for api/restaurant/:restaurantid/menu/:menuid/item/:itemid/remove
+     * Removes a menu from the specified menu
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object removeMenuItemFromMenu( Request req, Response res) {
+        try{ 
+            int itemID = Integer.parseInt(req.params(":itemid"));
+            int menuID = Integer.parseInt(req.params(":menuid"));
+            boolean success = DBUtil.removeItemFromMenu(itemID, menuID);
+            if( success ){
+                res.status(200); 
+                return "Successfully removed menu item"; 
+            }
+            else { 
+                res.status(500); 
+                return "Failed to remove menu item"; 
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse menu and restaurant IDs in removeMenuItemFromMenu."; 
+        }
+    }
+
+    /**
      * getFavoriteRestaurants: Handler for api/users/:userid/favorites/
      * Gets all the favorite restaurants for a user
      * @param Request - Request object. 
@@ -381,7 +494,7 @@ public class Main {
     public static Object getFavoriteRestaurants( Request req, Response res) {
         try{ 
             int userID = Integer.parseInt(req.params(":userid"));
-            ArrayList<FavoriteRestaurant> result = FavoriteRestaurant.allFavorites(userID);
+            ArrayList<Restaurant> result = Restaurant.getFavorites(userID);
             if( result.size() > 0 ){
                 res.status(200); 
                 return result; 
@@ -410,6 +523,68 @@ public class Main {
         } catch( NumberFormatException nfe){
             res.status(400); 
             return "Failed to parse restaurantID as an integer."; 
+        }
+    }
+
+    /**
+     * getAllAvailableMenus: Handler for /api/restaurant/:restaurantid/menu/available
+     * gets all the available menus for the specified restaurant.  
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getAllAvailableMenus( Request req, Response res ){
+
+        try{
+            int currentTime = getCurrentTimestamp();
+            int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+            res.status(200); 
+            return Menu.allAvailableMenus( restaurantID, currentTime ); 
+        } catch( NumberFormatException nfe){
+            res.status(400); 
+            return "Failed to parse restaurantID as an integer."; 
+        }
+    }
+
+    /**
+     * getCurrentTimestamp: Gets the current time in integer form (Ex: 2:30 PM = 1430)
+     */
+    public static int getCurrentTimestamp(){
+        Date currentTime = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(currentTime);
+        String hour = String.valueOf(cal.get(Calendar.HOUR_OF_DAY));
+        String minute = "";
+        //check if need to prepend "0" to minute
+        if(cal.get(Calendar.MINUTE) > 10){
+            minute = String.valueOf(cal.get(Calendar.MINUTE));
+        } else {
+            minute = "0" + String.valueOf(cal.get(Calendar.MINUTE));
+        }
+        String timestamp = hour.concat(minute);
+        return Integer.parseInt(timestamp);
+    }
+
+    /**
+     * getAllRestaurants: Handler for /api/restaurant/
+     * gets all the restaurants, can be used to select a random one
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getAllRestaurants( Request req, Response res ){
+        res.status(200); 
+        ResultSet result = DBUtil.getAllRestaurants();
+        if(result == null){
+            res.status(400);
+            return "Failed to get all restaurants";
+        }
+        try{
+            JSONArray jsonResult = ResultSetConverter.convert(result);
+            return jsonResult;
+        } catch( SQLException se ){
+            res.status(500);
+            System.out.printf("SQL Exception while converting all restaurants to correct format.\n" + 
+                "Exception: %s\n", se.toString() );
+            return "Exception while converting all restaurants to correct format.";
         }
     }
 
@@ -463,7 +638,26 @@ public class Main {
 
         try {
             int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
-            Restaurant restaurant = new Restaurant( restaurantID );  
+            Restaurant restaurant = new Restaurant( restaurantID, false );  
+            return restaurant; 
+
+        } catch( NumberFormatException nfe){
+            res.status(400); 
+            return "Failed to parse restaurantID as an integer.";
+        }
+    }
+
+    /**
+     * getRestaurantWithMenus: Handler for /api/restaurant/:restaurantid/withmenus  
+     * gets info about the specifed restaurantID.
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getRestaurantWithMenus( Request req, Response res ){
+
+        try {
+            int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+            Restaurant restaurant = new Restaurant( restaurantID, true );  
             return restaurant; 
 
         } catch( NumberFormatException nfe){
@@ -521,6 +715,29 @@ public class Main {
         else {
             res.status(400); 
             return "Failed to parse out request for submitting a order"; 
+        }
+    }
+
+    /**
+     * getOrdersForRestaurant: Handler for api/restaurant/:restaurantid/order
+     * adds a full order to the database
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object getOrdersForRestaurant( Request req, Response res ){
+        try{ 
+            int restaurantID = Integer.parseInt(req.params(":restaurantid"));
+            ArrayList<Order> result = Order.allOrdersForRestaurant(restaurantID); 
+            if(result.size() > 0){
+                res.status(200); 
+                return result;
+            } else {
+                res.status(500); 
+                return "Cannot find any orders for this restaurant";
+            }
+        } catch( NumberFormatException nfe ){
+            res.status(400); 
+            return "Failed to parse restaurantID in getOrdersForRestaurant."; 
         }
     }
 
@@ -635,26 +852,43 @@ public class Main {
                 });
             });
             path("/restaurant", () -> {
+                get("", Main::getAllRestaurants, new JsonTransformer() ); 
                 post("/add", Main::addRestaurant, new JsonTransformer() ); 
                 path("/:restaurantid", () -> {
                     get("", Main::getRestaurant, new JsonTransformer()); 
+                    get("/withmenus", Main::getRestaurantWithMenus, new JsonTransformer()); 
                     path("/menu", () -> {
                         get("", Main::getAllMenu, new JsonTransformer() ); 
+                        get("/available", Main::getAllAvailableMenus, new JsonTransformer() ); 
                         post("/add", "application/json", Main::addMenu, new JsonTransformer()); 
-                        post("/remove", Main::endpointNotImplemented); 
+                        path("/:menuid", () -> {
+                            post("/remove", Main::removeMenu, new JsonTransformer()); 
+                            path("/item", () -> {
+                                path("/:itemid", () -> {
+                                    post("/removefromall", Main::removeMenuItem, new JsonTransformer()); 
+                                    post("/remove", Main::removeMenuItemFromMenu, new JsonTransformer());
+                                });
+                            });
+                        });
                     });
                     path("/tables", () -> {
                         get("", Main::getTableInfo, new JsonTransformer()); 
                         path("/:tablenumber", () -> {
-                            //get("/sitdown",Main::sitDownAndGetTableID, new JsonTransformer()); 
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
                                 post("/add", Main::addItemToOrder, new JsonTransformer());
-                                post("/submit", Main::submitOrder, new JsonTransformer());
+                                get("/submit", Main::submitOrder, new JsonTransformer());
+                                post("/remove", Main::removeItemFromOrder ); 
+                            });
+                            path("/users", () -> {
+                                path("/:userid", () -> {
+                                    get("/sitdown",Main::sitDownAndGetTableID, new JsonTransformer()); 
+                                });
                             });
                         });
                     });
                     path("/order", () -> {
+                        get("", Main::getOrdersForRestaurant, new JsonTransformer() ); 
                         post("/submit", Main::submitCompleteOrder, new JsonTransformer());
                         path("/:orderid", () -> {
                             //get("", Main::getOrderByID, new JsonTransformer() ); 
