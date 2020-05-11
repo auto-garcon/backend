@@ -1,7 +1,7 @@
 package AutoGarcon; 
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.JSONException;
 
 import java.sql.SQLException;
@@ -69,7 +69,7 @@ public class ResultSetConverter {
         }
       }
 
-      json.put(obj);
+      json.add(obj);
     }
 
     return json;

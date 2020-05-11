@@ -1,7 +1,6 @@
 package AutoGarcon; 
 import com.google.gson.Gson; 
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.JsonElement; 
 import java.io.File;
 import java.sql.ResultSet; 
 import java.util.ArrayList; 
@@ -183,6 +182,33 @@ public class MenuItem {
 
     public void setImageURL(int menuID, int itemID) {
         this.imageURL = ImageUtil.getImageURL(itemID); 
+    }
+
+    public int getMenuID() {
+        return this.menuID;
+    }
+
+    public void setAllergens(Allergen[] allergens) {
+        this.allergens = allergens;
+    }
+    public void setCategory(String category) {
+        this.category = category;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setPrice(float price) {
+        this.price = price;
+    }
+    public void setCalories(int calories) {
+        this.calories = calories;
+    }
+
+    public String getImageURL() {
+        return this.imageURL;
     }
     
 

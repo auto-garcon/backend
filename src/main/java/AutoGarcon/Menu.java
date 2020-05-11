@@ -1,6 +1,5 @@
 package AutoGarcon; 
 import java.util.ArrayList; 
-import java.lang.reflect.Type; 
 import java.sql.ResultSet; 
 import java.sql.SQLException;
 import com.google.gson.Gson;
@@ -84,18 +83,21 @@ public class Menu {
     /**
      * Menu: Create a menu object from sql result. 
      * @param qresult - the result of the SQL query.
+     * @param withItems - a boolean flag that determines if menu items will be included
      * @return A menu object with data from the database.  
      */
-    public Menu( ResultSet qresult ){
+    public Menu( ResultSet qresult, boolean withItems ){
 
         try {
             this.restaurantID = qresult.getInt("restaurantID"); 
             this.menuID = qresult.getInt("menuID"); 
             int statusInt = qresult.getInt("menuStatus"); 
             this.status = MenuStatus.values()[statusInt];  
-            this.menuName = qresult.getString("menuName"); 
-            this.menuItems = MenuItem.menuItems( this.menuID ); 
+            this.menuName = qresult.getString("menuName");
             this.timeRanges = TimeRange.timeRanges( this.menuID ); 
+            if(withItems){
+                this.menuItems = MenuItem.menuItems( this.menuID ); 
+            }
         }
         catch( SQLException e){
             System.out.printf("Failed to get the required fields while creating a menu Object.\n" + 
@@ -119,7 +121,63 @@ public class Menu {
         try{ 
             hasResult = menus.next(); 
             while( hasResult ){
-                    Menu menu = new Menu( menus ); 
+                    Menu menu = new Menu( menus, true ); 
+                    list.add(menu); 
+                    hasResult = menus.next(); 
+            }
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to get next row in result set.\n" + 
+                    "Exception: %s\n", e.toString() );
+        }
+
+        return list.toArray( new Menu[ list.size() ] ); 
+    }
+
+    /**
+     * allMenus: Get all of the menus without their items in an array 
+     * for the specified restaurant. 
+     * @param restaurantID the restaurant to get menus for. 
+     * @return An array of menus. 
+     */
+    public static Menu[] allMenusWithoutItems( int restaurantID ){
+
+        ResultSet menus = DBUtil.getMenus( restaurantID ); 
+        ArrayList<Menu> list = new ArrayList<Menu>();  
+        boolean hasResult = false; 
+
+        try{ 
+            hasResult = menus.next(); 
+            while( hasResult ){
+                    Menu menu = new Menu( menus, false ); 
+                    list.add(menu); 
+                    hasResult = menus.next(); 
+            }
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to get next row in result set.\n" + 
+                    "Exception: %s\n", e.toString() );
+        }
+
+        return list.toArray( new Menu[ list.size() ] ); 
+    }
+
+    /**
+     * allAvailableMenus: Get all of the available menus in an array 
+     * for the specified restaurant and current time
+     * @param restaurantID the restaurant to get menus for. 
+     * @return An array of menus. 
+     */
+    public static Menu[] allAvailableMenus( int restaurantID, int curTime ){
+
+        ResultSet menus = DBUtil.getAvailableMenus( restaurantID, curTime ); 
+        ArrayList<Menu> list = new ArrayList<Menu>();  
+        boolean hasResult = false; 
+
+        try{ 
+            hasResult = menus.next(); 
+            while( hasResult ){
+                    Menu menu = new Menu( menus, true ); 
                     list.add(menu); 
                     hasResult = menus.next(); 
             }

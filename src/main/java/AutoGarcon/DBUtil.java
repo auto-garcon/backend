@@ -1,10 +1,6 @@
 package AutoGarcon; 
 import java.sql.*; 
-import java.io.File; 
 import java.util.List;
-
-import org.json.JSONArray;
-
 import java.util.ArrayList;
 import java.util.Arrays; 
 
@@ -36,15 +32,11 @@ public class DBUtil {
 
         ResultSet result = null;
         Connection c = connectToDB();
-        Statement stmt;
+        CallableStatement stmt;
         try {
-            String query = String.format( "SELECT " + 
-                    "restaurantId, restaurantName, description, " + 
-                    "address, salesTax, city, state, zipCode, country " + 
-                    "FROM Restaurant where restaurantId = %d;", restaurantID 
-            ); 
-            stmt = c.createStatement(); 
-            result = stmt.executeQuery( query );  
+            stmt = c.prepareCall("{call GetRestaurantByID(?)}" ); 
+            stmt.setInt( "rID", restaurantID );  
+            result = stmt.executeQuery();  
             result.beforeFirst(); 
             return result;
 
@@ -59,17 +51,13 @@ public class DBUtil {
 
         ResultSet result = null;
         Connection c = connectToDB();
-        Statement stmt;
+        CallableStatement stmt;
 
         try{
-            String query = String.format("SELECT" + 
-                    "tableID, alexaID, tableNumber, restaurantID " + 
-                    "FROM RestaurantTables " + 
-                    "WHERE restaurantID = %d AND tableNumber = %d;", 
-                    restaurantID, tableNum 
-            ); 
-            stmt = c.createStatement();  
-            result = stmt.executeQuery( query ); 
+            stmt = c.prepareCall("{call GetTableID(?, ?)}" ); 
+            stmt.setInt( "rID", restaurantID );
+            stmt.setInt( "tableNum", tableNum );  
+            result = stmt.executeQuery();  
             result.beforeFirst(); 
             return result; 
         } catch( SQLException e ){
@@ -137,6 +125,34 @@ public class DBUtil {
     }
 
     /**
+     * getAvailableMenus: Gets all the menus offered by a restaurant at the current time
+     * @param restaurantID the id of the restaurant.
+     * @param curTime current time in integer form
+     * @return SQL result set containing menu data.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static ResultSet getAvailableMenus( int restaurantID, int curTime ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetAccessibleMenus(?, ?)}" ); 
+            stmt.setInt( "rID", restaurantID );
+            stmt.setInt( "currentTime", curTime);
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetMenusByRestaurantId stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+        return result;
+    }
+
+    /**
      * getOrder: Gets all off the fields for an order by an ID.
      * @param orderID the id of the order.
      * @return SQL result set containing order data.
@@ -163,8 +179,8 @@ public class DBUtil {
     }
 
     /**
-     * getOrder: Gets all off the fields for an order by an ID.
-     * @param orderID the id of the order.
+     * getOrder: Gets all off the fields for all orders a user made within 24 hours.
+     * @param userID the id of the user.
      * @return SQL result set containing order data.
      *
      * Result set's cursor will start just before the first row.
@@ -178,6 +194,32 @@ public class DBUtil {
         try { 
             stmt = c.prepareCall("{call GetOrdersInPast24Hours(?)}" ); 
             stmt.setInt( "uID", userID );  
+            
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue GetOrderByID stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
+        return result;
+    }
+
+    /**
+     * getOrdersForRestaurant: Gets all off the fields for every order at a restaurant.
+     * @param restaurantID the id of the restaurant.
+     * @return SQL result set containing order data.
+     *
+     * Result set's cursor will start just before the first row.
+     * So use ResultSet.next() to get to the first row.
+     */
+    public static ResultSet getOrdersForRestaurant( int restaurantID ){
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetOrdersForRestaurant(?)}" ); 
+            stmt.setInt( "rID", restaurantID );  
             
             result = stmt.executeQuery(); 
             result.beforeFirst(); 
@@ -556,7 +598,6 @@ public class DBUtil {
             stmt.setNString("firstName", user.getFirstName());
             stmt.setNString("lastName", user.getLastName());
             stmt.setNString("email", user.getEmail());
-            stmt.setNString("token", user.getToken());
 
             result = stmt.executeQuery();
             result.next();
@@ -653,7 +694,7 @@ public class DBUtil {
 
         try {
             stmt = c.prepareCall( "{call AddFavoriteRestaurant(?, ?)}" ); 
-            stmt.setInt("userId", userID);
+            stmt.setInt("uID", userID);
             stmt.setInt("rID", restaurantID); 
             
             //return true if succeded
@@ -695,6 +736,80 @@ public class DBUtil {
     }
 
     /**
+     * removeMenu - removes a menu from the database
+     * @param menuID - the id of the menu
+     */
+    public static boolean removeMenu( int menuID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call RemoveMenu(?)}" ); 
+            stmt.setInt("mID", menuID);
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing removeMenu.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * removeMenuItem - removes a menu item from all menus
+     * @param itemID - the id of the item
+     */
+    public static boolean removeMenuItem( int itemID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call RemoveMenuItem(?)}" ); 
+            stmt.setInt("iID", itemID);
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing removeMenuItem.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
+     * removeMenuItemFromMenu - removes a menu item from the specified menu
+     * @param itemID - the id of the item
+     * @param menuID - the id of the menu
+     */
+    public static boolean removeItemFromMenu( int itemID, int menuID ){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+
+        try {
+            stmt = c.prepareCall( "{call RemoveItemFromMenu(?, ?)}" ); 
+            stmt.setInt("iID", itemID);
+            stmt.setInt("mID", menuID);
+            
+            //return true if succeded
+            stmt.executeQuery(); 
+            return true;
+
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing removeItemFromMenu.\n" + 
+                    "Exception: %s\n", e.toString() );
+            return false; 
+        }
+    }
+
+    /**
      * getFavoriteRestaurants - gets the favorite restaurants for a user
      * @param userID - the id of the user
      */
@@ -706,6 +821,30 @@ public class DBUtil {
         try {
             stmt = c.prepareCall( "{call GetFavoriteRestaurants(?)}" ); 
             stmt.setInt("inputUserID", userID);
+            
+            //return response formatted in JSON
+            result = stmt.executeQuery(); 
+            return result;
+
+        }
+        catch( Exception e ){
+            System.out.printf("SQL Exception while executing getFavoriteRestaurants.\n" + 
+                    "Exception: %s\n", e.toString() );
+        }
+        return result;
+    }
+
+    /**
+     * getFavoriteRestaurants - gets the favorite restaurants for a user
+     * @param userID - the id of the user
+     */
+    public static ResultSet getAllRestaurants(){
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        ResultSet result = null;
+
+        try {
+            stmt = c.prepareCall( "{call GetAllRestaurants()}" ); 
             
             //return response formatted in JSON
             result = stmt.executeQuery(); 
