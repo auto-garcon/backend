@@ -81,6 +81,11 @@ public class Main {
     }
 
 
+    /**
+     * getTableInfo: gets information about a table 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
     public static Object getTableInfo( Request req, Response res ){
 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
@@ -96,11 +101,13 @@ public class Main {
             //get the table coresponding to the alexa.
             Table table = Table.tableFromAlexaID( alexaID );
             res.status(200); 
+            table.updateCurrentOrder(); 
             return table; 
         }
         else if( tableNumber != -1 ){
             res.status(200); 
             Table table = Table.tableFromTableID( restaurantID, tableNumber);
+            table.updateCurrentOrder(); 
             return table; 
         }
         else {
@@ -138,29 +145,24 @@ public class Main {
      * Populates order object with initial fields
      * @param Request - Request object. 
      * @param Response - Response object.  
+     *
+     * initalize an order for a particular restaurant and table.  
+     * Order object should include the customer ID.   
      */
     public static Object initializeOrder( Request req, Response res) {
 
-        Order order = new Order();
+        Order order = Order.orderFromJson( req.body() );  
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+        int customerID = order.getCustomerID(); 
 
-        //get the most current user at the table
-        UserTracker userTracker = UserTracker.getInstance();
-        Integer customerID = userTracker.getUserID(restaurantID, tableNumber);
-        if(customerID == null){
-            res.status(400);
-            return "There is no user at this table yet";
-        }
-
-        //set the tableID and customer ID to make the createOrder database call later
+        //set the tableID 
         int tableID = DBUtil.getTableID(restaurantID, tableNumber);
         if(tableID < 0) {
             res.status(400);
             return "Invalid restaurant ID and table number combination";
         }
         order.setTableID(tableID);
-        order.setCustomerID( customerID );
         boolean initialized = order.initializeOrder(order); 
 
         OrderTracker tracker = OrderTracker.getInstance();
@@ -209,6 +211,33 @@ public class Main {
         order.addOrderItem( orderItem ); 
         res.status(200);
         return "Successfully added item to order.";
+    }
+
+
+    /**
+     * removeItemFromOrder: Removes an orderitem from an active order.
+     *
+     */
+    public static Object removeItemFromOrder( Request req, Response res ){
+        OrderItem item = OrderItem.orderItemFromJson( req.body() );  
+        int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+
+        OrderTracker tracker = OrderTracker.getInstance();
+        Order order = tracker.getOrder( restaurantID, tableNumber ); 
+
+        if( order == null ){
+            System.out.printf("Tried to add an item to a non-existant order.\n" +
+                    "restaurantID: %d, tableNumber: %d.\n", 
+                    restaurantID, tableNumber 
+            );
+            res.status(400); 
+            return "No open order for this table."; 
+        }
+
+        order.removeOrderItem( item.getOrderItemID() ); 
+        res.status(200); 
+        return "Sucessfully removed orderItem"; 
     }
 
     /**
@@ -383,12 +412,12 @@ public class Main {
         }
     }
 
-     /**
-     * removeMenu: Handler for api/restaurant/:restaurantid/menu/:menuid/remove
-     * Removes a menu from the database (marks it inactive)
-     * @param Request - Request object. 
-     * @param Response - Response object.  
-     */
+    /**
+    * removeMenu: Handler for api/restaurant/:restaurantid/menu/:menuid/remove
+    * Removes a menu from the database (marks it inactive)
+    * @param Request - Request object. 
+    * @param Response - Response object.  
+    */
     public static Object removeMenu( Request req, Response res) {
         try{ 
             int menuID = Integer.parseInt(req.params(":menuid"));
@@ -848,7 +877,8 @@ public class Main {
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
                                 post("/add", Main::addItemToOrder, new JsonTransformer());
-                                post("/submit", Main::submitOrder, new JsonTransformer());
+                                get("/submit", Main::submitOrder, new JsonTransformer());
+                                post("/remove", Main::removeItemFromOrder ); 
                             });
                             path("/users", () -> {
                                 path("/:userid", () -> {

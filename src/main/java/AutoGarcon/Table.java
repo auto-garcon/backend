@@ -8,6 +8,7 @@ public class Table {
     private int tableNumber; 
     private User customer; 
     private String alexaID; 
+    private Order currentOrder; 
 
     public static Table tableFromResultSet( ResultSet rs ){
 
@@ -46,6 +47,11 @@ public class Table {
         this.tableNumber = tableNumber;  
     }
 
+
+    public void updateCurrentOrder(){
+        OrderTracker tracker = OrderTracker.getInstance();  
+        this.currentOrder = tracker.getOrder( this.restaurantID, this.tableNumber ); 
+    }
 
 
     public Order getCurrentOrder(){

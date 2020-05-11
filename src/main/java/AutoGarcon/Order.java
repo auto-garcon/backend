@@ -229,6 +229,14 @@ public class Order {
         this.orderItems.add( item );
     }
 
+    public void removeOrderItem( int orderItemID ){
+        for( OrderItem item  : this.orderItems ){
+            if( item.getOrderItemID() == orderItemID ){
+                this.orderItems.remove( item ); 
+            }
+        }
+    }
+
     public OrderStatus getOrderStatus() {
         return this.orderStatus;
     }
