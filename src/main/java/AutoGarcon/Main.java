@@ -141,7 +141,7 @@ public class Main {
     }
 
     /**
-     * initializeOrder: Handler for api/restaurant/:restaurantid/:tablenumber/order/new
+     * initializeOrder: Handler for api/restaurant/:restaurantid/tables/:tablenumber/order/new
      * Populates order object with initial fields
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -153,8 +153,20 @@ public class Main {
 
         Order order = Order.orderFromJson( req.body() );  
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
-        int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
-        int customerID = order.getCustomerID(); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber"));
+        int customerID = -1;
+        //check to make sure the request body contains the correct information
+        if(!(order == null)){
+            customerID = order.getCustomerID();
+        } else {
+            res.status(400);
+            return "No customer ID provided in the body of the request";
+        }
+
+        if(customerID < 0){
+            res.status(400);
+            return "Invalid customer ID provided";
+        }
 
         //set the tableID 
         int tableID = DBUtil.getTableID(restaurantID, tableNumber);
@@ -185,7 +197,7 @@ public class Main {
     }
 
     /**
-     * addItemToOrder: Handler for api/restaurant/:restaurantid/:tablenumber/order/add
+     * addItemToOrder: Handler for api/restaurant/:restaurantid/tables/:tablenumber/order/add
      * Adds item to existing order at the specified table
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -241,7 +253,7 @@ public class Main {
     }
 
     /**
-     * submitOrder: Handler for api/restaurant/:restaurantid/:tablenumber/order/submit
+     * submitOrder: Handler for api/restaurant/:restaurantid/tables/:tablenumber/order/submit
      * Submits the order once it is all built
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -300,41 +312,6 @@ public class Main {
         } catch( NumberFormatException nfe ){
             res.status(400); 
             return "Failed to get results from getOrdersWithin24Hours."; 
-        }
-    }
-
-    /**
-     * sitDownAndGetTableID: Handler for api/restaurant/:restaurantid/:tablenumber/user/:userid/sitdown
-     * Gets the table ID from the query string's restaurantID and table number
-     * @param Request - Request object. 
-     * @param Response - Response object.  
-     */
-    public static Object sitDownAndGetTableID( Request req, Response res) {
-
-        try{ 
-            int userID = Integer.parseInt(req.params(":userid"));
-            int restaurantID = Integer.parseInt(req.params(":restaurantID"));
-            int tableNumber = Integer.parseInt(req.params(":tablenumber"));
-            int tableID = DBUtil.getTableID(restaurantID, tableNumber);
-
-            //attach this user to the table
-            UserTracker tracker = UserTracker.getInstance();
-            tracker.addUser(restaurantID, tableNumber, userID);
-
-
-            if(tableID >= 0){
-                res.status(200);
-                //return the tableID in JSON form
-                HashMap<String,Integer> jsonMap = new HashMap<>();
-                jsonMap.put("tableID", tableID);
-                return new JSONObject(jsonMap);
-            } else {
-                res.status(500); 
-                return "Invalid restaurant ID and table number combination";
-            }
-        } catch( NumberFormatException nfe ){
-            res.status(400); 
-            return "Failed to parse restaurantID and tableNumber as integers."; 
         }
     }
 
@@ -495,13 +472,8 @@ public class Main {
         try{ 
             int userID = Integer.parseInt(req.params(":userid"));
             ArrayList<Restaurant> result = Restaurant.getFavorites(userID);
-            if( result.size() > 0 ){
-                res.status(200); 
-                return result; 
-            } else { 
-                res.status(500); 
-                return "Cannot get any favorite restaurants for the user"; 
-            }
+            res.status(200); 
+            return result; 
         } catch( NumberFormatException nfe ){
             res.status(400); 
             return "Failed to parse userID in getFavoriteRestaurants."; 
@@ -693,13 +665,36 @@ public class Main {
     }
 
     /**
-     * submitCompleteOrder: Handler for api/restaurant/:restaurantid/order/submit
+     * submitCompleteOrder: Handler for api/restaurant/:restaurantid/tables/:tablenumber/order/submitfull
      * adds a full order to the database
      * @param Request - Request object. 
      * @param Response - Response object.  
      */
     public static Object submitCompleteOrder( Request req, Response res ){
-        Order order = Order.orderFromJson( req.body() ); 
+        Order order = Order.orderFromJson( req.body() );
+        int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber"));
+        int customerID = -1;
+        //check to make sure the request body contains the correct information
+        if(!(order == null)){
+            customerID = order.getCustomerID();
+        } else {
+            res.status(400);
+            return "No customer ID provided in the body of the request";
+        }
+
+        if(customerID < 0){
+            res.status(400);
+            return "Invalid customer ID provided";
+        }
+
+        //set the tableID 
+        int tableID = DBUtil.getTableID(restaurantID, tableNumber);
+        if(tableID < 0) {
+            res.status(400);
+            return "Invalid restaurant ID and table number combination";
+        }
+        order.setTableID(tableID);
 
         if( !order.isDefault() ){
             boolean saved = order.save(); 
@@ -877,19 +872,14 @@ public class Main {
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
                                 post("/add", Main::addItemToOrder, new JsonTransformer());
-                                get("/submit", Main::submitOrder, new JsonTransformer());
+                                post("/submit", Main::submitOrder, new JsonTransformer());
+                                post("/submitfull", Main::submitCompleteOrder, new JsonTransformer());
                                 post("/remove", Main::removeItemFromOrder ); 
-                            });
-                            path("/users", () -> {
-                                path("/:userid", () -> {
-                                    get("/sitdown",Main::sitDownAndGetTableID, new JsonTransformer()); 
-                                });
                             });
                         });
                     });
                     path("/order", () -> {
                         get("", Main::getOrdersForRestaurant, new JsonTransformer() ); 
-                        post("/submit", Main::submitCompleteOrder, new JsonTransformer());
                         path("/:orderid", () -> {
                             //get("", Main::getOrderByID, new JsonTransformer() ); 
                             post("/complete", Main::markOrderReady, new JsonTransformer());
