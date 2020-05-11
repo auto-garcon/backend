@@ -239,7 +239,7 @@ public class Main {
         Order order = tracker.getOrder( restaurantID, tableNumber ); 
 
         if( order == null ){
-            System.out.printf("Tried to add an item to a non-existant order.\n" +
+            System.out.printf("Tried to remove an item to a non-existant order.\n" +
                     "restaurantID: %d, tableNumber: %d.\n", 
                     restaurantID, tableNumber 
             );
@@ -247,7 +247,7 @@ public class Main {
             return "No open order for this table."; 
         }
 
-        order.removeOrderItem( item.getOrderItemID() ); 
+        order.removeMenuItemFromOrder( item.getMenuItemID() ); 
         res.status(200); 
         return "Sucessfully removed orderItem"; 
     }
@@ -872,7 +872,7 @@ public class Main {
                             path("/order", () -> {
                                 post("/new", Main::initializeOrder, new JsonTransformer());
                                 post("/add", Main::addItemToOrder, new JsonTransformer());
-                                post("/submit", Main::submitOrder, new JsonTransformer());
+                                get("/submit", Main::submitOrder, new JsonTransformer());
                                 post("/submitfull", Main::submitCompleteOrder, new JsonTransformer());
                                 post("/remove", Main::removeItemFromOrder ); 
                             });
