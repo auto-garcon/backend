@@ -624,7 +624,7 @@ public class DBUtil {
         try {
             for(OrderItem item : order.getOrderItems()){
                 //if any fields are invalid, don't make the order
-                if(item.getMenuItemID() <= 0 || item.getMenuID() <= 0 || item.getQuantity() <= 0 || item.getComments() == null) {
+                if(item.getMenuItemID() <= 0 || item.getMenuID() == null || item.getMenuID() <= 0 || item.getQuantity() <= 0 || item.getComments() == null) {
                     return false;
                 }
             }
