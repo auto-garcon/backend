@@ -80,6 +80,21 @@ public class Main {
     }
 
 
+
+    /**
+     * getTableByAlexaID: gets the table info by alexa ID.
+     * @param Request - alexaID      
+     * @param Response - Response object.  
+     *
+     */
+    public static Object getTableByAlexaID( Request req, Response res ){
+        String alexaID = req.queryParamOrDefault("alexaid", ""); 
+        Table table = Table.tableFromAlexaID( alexaID );
+        table.updateCurrentOrder(); 
+        res.status(200); 
+        return table; 
+    }
+
     /**
      * getTableInfo: gets information about a table 
      * @param Request - Request object. 
@@ -837,7 +852,7 @@ public class Main {
 		get("/", Main::serveStatic);
 
         path("/api", () -> {
-
+            post("/tables", "application/json", Main::getTableByAlexaID, new JsonTransformer() ); 
             path("/users", () -> {
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );
                 path("/:userid", () -> {
