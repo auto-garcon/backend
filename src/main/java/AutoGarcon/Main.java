@@ -568,11 +568,8 @@ public class Main {
 
         Restaurant[] restaurants = Restaurant.getAllRestaurants();   
         //ResultSet result = DBUtil.getAllRestaurants();
-        JSONObject resp = new JSONObject(); 
-        JSONArray restaurantsJSON = new JSONArray( restaurants );
-        resp.put("numRestaurants", Integer.toString(restaurants.length));
-        resp.put("restaurants", (Object) restaurantsJSON);  
-        res.status(200); 
+        
+        Restaurants resp = new Restaurants( restaurants ); 
         return resp;
     }
 
@@ -881,7 +878,7 @@ public class Main {
                     path("/tables", () -> {
                         get("", Main::getTableInfo, new JsonTransformer() ); 
                         path("/:tablenumber", () -> {
-                            post("/tables/register", "application/json", Main::registerAlexaID ); 
+                            post("/register", "application/json", Main::registerAlexaID ); 
                             path("/order", () -> {
                                 //get("", Main::getOrderByTable, new JsonTransformer() );
                                 post("/new", Main::initializeOrder, new JsonTransformer());
