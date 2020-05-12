@@ -5,6 +5,7 @@
     "city": "chaska", 
     "zipcode": 55318, 
     "state": "MN", 
-    "country":, "USA", 
-    "numTables": 12, 
+    "country": "USA", 
+    "numTables": 12,
+    "salesTax": 0.2 
 }

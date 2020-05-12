@@ -1,10 +1,8 @@
 package AutoGarcon;
 
 import static spark.Spark.*;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
+import org.json.JSONArray;
+import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
 import java.io.InputStream;
@@ -29,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author  Tyler Beverley, 
  * @author Sosa Edison  
+ * @author Tyler Reiland
  * @version 0.1
  * @since 2/24/20
  * @see <a href="https://github.com/auto-garcon/documentation/blob/master/APISpecification.md">Documentation</a>;  For API Endpoints. 
@@ -85,23 +84,31 @@ public class Main {
      * getTableInfo: gets information about a table 
      * @param Request - Request object. 
      * @param Response - Response object.  
+     *
+     * response if no query params: 
+     *  numTables: int 
+     *  tables: table[] 
+     *
+     * response if a query param is specifed: 
+     *  table object 
      */
     public static Object getTableInfo( Request req, Response res ){
 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
-        String alexaID = req.queryParamOrDefault("alexaid", ""); 
         int tableNumber = Integer.parseInt(req.queryParamOrDefault("tablenumber", "-1")); 
+        String alexaID = req.queryParamOrDefault("alexaid", ""); 
 
         if( tableNumber == -1 && alexaID.equals("") ){
             //get all the tables for the restaurant.  
-            //Table[] tables = Table.getAllTables( int restaurantID );  
-            return "Get all tables not implemented yet";
+            Table[] tables = Table.getAllTables( restaurantID );  
+            Tables resp = new Tables( tables ); 
+            return resp;
         }
         else if( !alexaID.equals("") ){
             //get the table coresponding to the alexa.
             Table table = Table.tableFromAlexaID( alexaID );
-            res.status(200); 
             table.updateCurrentOrder(); 
+            res.status(200); 
             return table; 
         }
         else if( tableNumber != -1 ){
@@ -119,26 +126,22 @@ public class Main {
 
 
     /**
-     * addMenu: Handler for /api/restaurant/:restaurantid/menu/add
-     * Adds a menu to a database. 
-     * @param Request - Request object. 
+     * registerAlexaID: register an alexaID to a table. 
+     * @param Request -  alexaID. 
      * @param Response - Response object.  
      */
-    public static Object addMenu( Request req, Response res) {
-  
-        Menu menu = Menu.menuFromJson( req.body() );   
+    public static Object registerAlexaID( Request req, Response res ){
 
-        //System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
-        boolean saved = menu.save(); 
+        int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
+        int tableNumber = Integer.parseInt(req.queryParamOrDefault("tablenumber", "-1")); 
 
-        if (!menu.isDefault() && saved) {
-            res.status(200);
-            return "Successfully recieved menu.";
-        } else {
-            res.status(500); 
-            return "Error recieving menu"; 
-        }
+        String alexaID = req.attribute( "alexaID" ); 
+        Table table = Table.tableFromTableID( restaurantID, tableNumber ); 
+        table.registerAlexa( alexaID ); 
+        res.status(200); 
+        return "Successfully registered AlexaID";
     }
+
 
     /**
      * initializeOrder: Handler for api/restaurant/:restaurantid/tables/:tablenumber/order/new
@@ -228,6 +231,8 @@ public class Main {
 
     /**
      * removeItemFromOrder: Removes an orderitem from an active order.
+     * @param Request - Request object. 
+     * @param Response - Response object.  
      *
      */
     public static Object removeItemFromOrder( Request req, Response res ){
@@ -253,8 +258,8 @@ public class Main {
     }
 
     /**
-     * submitOrder: Handler for api/restaurant/:restaurantid/tables/:tablenumber/order/submit
-     * Submits the order once it is all built
+     * submitOrder: Handler for api/restaurant/:restaurantid/:tablenumber/order/submit
+     * Submits a prebuilt order object to the database.   
      * @param Request - Request object. 
      * @param Response - Response object.  
      */
@@ -476,6 +481,28 @@ public class Main {
     }
 
     /**
+     * addMenu: Handler for /api/restaurant/:restaurantid/menu/add
+     * Adds a menu to a database. 
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object addMenu( Request req, Response res) {
+  
+        Menu menu = Menu.menuFromJson( req.body() );   
+
+        //System.out.printf("Printing Incoming menu:\n %s\n", menu.toString());
+        boolean saved = menu.save(); 
+
+        if (!menu.isDefault() && saved) {
+            res.status(200);
+            return "Successfully recieved menu.";
+        } else {
+            res.status(500); 
+            return "Error recieving menu"; 
+        }
+    }
+
+    /**
      * getAllMenu: Handler for /api/restaurant/:restaurantid/menu/
      * gets all the menus for the specified restaurant.  
      * @param Request - Request object. 
@@ -538,21 +565,15 @@ public class Main {
      * @param Response - Response object.  
      */
     public static Object getAllRestaurants( Request req, Response res ){
+
+        Restaurant[] restaurants = Restaurant.getAllRestaurants();   
+        //ResultSet result = DBUtil.getAllRestaurants();
+        JSONObject resp = new JSONObject(); 
+        JSONArray restaurantsJSON = new JSONArray( restaurants );
+        resp.put("numRestaurants", Integer.toString(restaurants.length));
+        resp.put("restaurants", (Object) restaurantsJSON);  
         res.status(200); 
-        ResultSet result = DBUtil.getAllRestaurants();
-        if(result == null){
-            res.status(400);
-            return "Failed to get all restaurants";
-        }
-        try{
-            JSONArray jsonResult = ResultSetConverter.convert(result);
-            return jsonResult;
-        } catch( SQLException se ){
-            res.status(500);
-            System.out.printf("SQL Exception while converting all restaurants to correct format.\n" + 
-                "Exception: %s\n", se.toString() );
-            return "Exception while converting all restaurants to correct format.";
-        }
+        return resp;
     }
 
     /**
@@ -819,6 +840,7 @@ public class Main {
 		get("/", Main::serveStatic);
 
         path("/api", () -> {
+
             path("/users", () -> {
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );
                 path("/:userid", () -> {
@@ -857,9 +879,11 @@ public class Main {
                         });
                     });
                     path("/tables", () -> {
-                        get("", Main::getTableInfo, new JsonTransformer()); 
+                        get("", Main::getTableInfo, new JsonTransformer() ); 
                         path("/:tablenumber", () -> {
+                            post("/tables/register", "application/json", Main::registerAlexaID ); 
                             path("/order", () -> {
+                                //get("", Main::getOrderByTable, new JsonTransformer() );
                                 post("/new", Main::initializeOrder, new JsonTransformer());
                                 post("/add", Main::addItemToOrder, new JsonTransformer());
                                 get("/submit", Main::submitOrder, new JsonTransformer());

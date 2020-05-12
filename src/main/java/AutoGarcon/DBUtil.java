@@ -24,29 +24,13 @@ public class DBUtil {
     private Connection connection;
 
 
-    /** getRestaurant = gets the restaurant with the specified restaurantID.
-     * @param restaurantID 
-     * @return ResultSet - SQL result representing feilds for a restaurant. 
+
+    /**
+     * getTable: gets the table info by table number and restaurant id. 
+     * @param restaurantID
+     * @param tableNum
+     * @return SQL result containing the saved table information. 
      */
-    public static ResultSet getRestaurant( int restaurantID ) {
-
-        ResultSet result = null;
-        Connection c = connectToDB();
-        CallableStatement stmt;
-        try {
-            stmt = c.prepareCall("{call GetRestaurantByID(?)}" ); 
-            stmt.setInt( "rID", restaurantID );  
-            result = stmt.executeQuery();  
-            result.beforeFirst(); 
-            return result;
-
-        } catch( SQLException e ){
-            System.out.printf("Failed to query for restaurant. restaurantID %d .\n" +
-                    "Exception: %s\n", restaurantID, e.toString() );
-        }
-        return result; 
-    }
-
     public static ResultSet getTable( int restaurantID, int tableNum ){
 
         ResultSet result = null;
@@ -67,6 +51,12 @@ public class DBUtil {
         return result;
     }
 
+
+    /**
+     * getTable: gets the table info by alexaID. 
+     * @param alexaID - the alexaID to look up. 
+     * @return SQL result containing the saved table information. 
+     */
     public static ResultSet getTable( String alexaID ){
 
         ResultSet result = null;
@@ -89,12 +79,46 @@ public class DBUtil {
     }
 
 
-    public static ResultSet setAlexaIDForTable( int tableID, String alexaID ){
+    public static ResultSet getAllTables( int restaurantID ){
+        ResultSet result = null; 
+        Connection c = connectToDB(); 
+        Statement stmt; 
+
+        String query = String.format("SELECT * FROM AutoGarcon.RestaurantTables " + 
+                "WHERE restaurantID = %d;", restaurantID ); 
+
+        try {
+            stmt = c.createStatement(); 
+            result = stmt.executeQuery( query ); 
+            result.beforeFirst(); 
+        } catch( SQLException e ){
+            System.out.printf("Failed to query for tables on restaurantID. \n" +
+                    "Exception: " + e.toString() );
+        }
+        return result;
+    }
+
+
+    /**
+     * setAlexaIDForTable: assocaite an alexa ID with a table. 
+     * @param tableID - the table to associate with alexa. 
+     * @param alexaID - the alexaID to associate with.  
+     */
+    public static void setAlexaIDForTable( int tableID, String alexaID ){
 
         ResultSet result = null;
         Connection c = connectToDB();
         CallableStatement stmt;
-        return null;
+
+        try{
+            stmt = c.prepareCall("{call RegisterAlexaID(?, ?)}"); 
+            stmt.setNString("aID", alexaID); 
+            stmt.setInt("tID", tableID); 
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to exectue RegisterAlexaID stored procedure.\n" +
+                    "Exception: " + e.toString() );
+        }
     }
 
 
@@ -357,18 +381,20 @@ public class DBUtil {
             stmt.setNString("rName", restaurant.getName() ); 
             stmt.setNString("rDescr", restaurant.getDescription() ); 
             stmt.setNString("rAddress", restaurant.getAddress() ); 
-            stmt.setObject("salesTax", restaurant.getSalesTax(), Types.DECIMAL, 2 ); 
-            stmt.setNString("city", restaurant.getCity() ); 
-            stmt.setNString("state", restaurant.getState() );  
+            stmt.setObject("rSalesTax", restaurant.getSalesTax(), Types.DECIMAL, 2 ); 
+            stmt.setNString("rCity", restaurant.getCity() ); 
+            stmt.setNString("rState", restaurant.getState() );  
             stmt.setInt("rZip", restaurant.getZip() ); 
             stmt.setNString("rCountry", restaurant.getCountry() ); 
+            stmt.setNString("pColor", restaurant.getPrimaryColor() ); 
+            stmt.setNString("sColor", restaurant.getSecondaryColor() ); 
 
             result = stmt.executeQuery(); 
             int restaurantID = result.getInt("newRestaurantID"); 
             return true; 
         }
         catch( SQLException e ) {
-            System.out.printf("SQL Exception while executing CreateNewMenu.\n" + 
+            System.out.printf("SQL Exception while executing CreateNewRestaurant.\n" + 
                     "Exception: %s\n", e.toString() 
             );
         }
@@ -840,8 +866,31 @@ public class DBUtil {
         return result;
     }
 
+    /** getRestaurant = gets the restaurant with the specified restaurantID.
+     * @param restaurantID 
+     * @return ResultSet - SQL result representing feilds for a restaurant. 
+     */
+    public static ResultSet getRestaurant( int restaurantID ) {
+
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+        try {
+            stmt = c.prepareCall("{call GetRestaurantByID(?)}" ); 
+            stmt.setInt( "rID", restaurantID );  
+            result = stmt.executeQuery();  
+            result.beforeFirst(); 
+            return result;
+
+        } catch( SQLException e ){
+            System.out.printf("Failed to query for restaurant. restaurantID %d .\n" +
+                    "Exception: %s\n", restaurantID, e.toString() );
+        }
+        return result; 
+    }
+
     /**
-     * getFavoriteRestaurants - gets the favorite restaurants for a user
+     * getAllRestaurants- gets the favorite restaurants for a user
      * @param userID - the id of the user
      */
     public static ResultSet getAllRestaurants(){
