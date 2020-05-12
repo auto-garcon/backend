@@ -25,7 +25,6 @@ public class DBUtil {
 
 
 
-
     /**
      * getTable: gets the table info by table number and restaurant id. 
      * @param restaurantID
@@ -382,18 +381,20 @@ public class DBUtil {
             stmt.setNString("rName", restaurant.getName() ); 
             stmt.setNString("rDescr", restaurant.getDescription() ); 
             stmt.setNString("rAddress", restaurant.getAddress() ); 
-            stmt.setObject("salesTax", restaurant.getSalesTax(), Types.DECIMAL, 2 ); 
-            stmt.setNString("city", restaurant.getCity() ); 
-            stmt.setNString("state", restaurant.getState() );  
+            stmt.setObject("rSalesTax", restaurant.getSalesTax(), Types.DECIMAL, 2 ); 
+            stmt.setNString("rCity", restaurant.getCity() ); 
+            stmt.setNString("rState", restaurant.getState() );  
             stmt.setInt("rZip", restaurant.getZip() ); 
             stmt.setNString("rCountry", restaurant.getCountry() ); 
+            stmt.setNString("pColor", restaurant.getPrimaryColor() ); 
+            stmt.setNString("sColor", restaurant.getSecondaryColor() ); 
 
             result = stmt.executeQuery(); 
             int restaurantID = result.getInt("newRestaurantID"); 
             return true; 
         }
         catch( SQLException e ) {
-            System.out.printf("SQL Exception while executing CreateNewMenu.\n" + 
+            System.out.printf("SQL Exception while executing CreateNewRestaurant.\n" + 
                     "Exception: %s\n", e.toString() 
             );
         }

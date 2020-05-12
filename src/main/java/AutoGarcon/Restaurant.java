@@ -29,6 +29,7 @@ public class Restaurant {
     private String secondaryColor;
     private Menu[] menus;
     private int numTables; 
+    private float salesTax; 
 
 
     /**
@@ -223,7 +224,7 @@ public class Restaurant {
     }
 
     public float getSalesTax(){
-        return this.getSalesTax(); 
+        return this.salesTax; 
     }
 
     public int getNumTables() {
