@@ -129,6 +129,36 @@ public class Restaurant {
         }
     }
 
+
+    public static Restaurant[] getAllRestaurants(){
+        ArrayList<Restaurant> restaurants = new ArrayList<Restaurant>(); 
+        ResultSet result = DBUtil.getAllRestaurants(); 
+        try{
+            while( result.next() ){
+                //fill restaurant object
+                Restaurant restaurant = new Restaurant();
+                restaurant.restaurantID = result.getInt("restaurantID"); 
+                restaurant.restaurantName = result.getString("restaurantName");  
+                restaurant.description = result.getString("description"); 
+                restaurant.address = result.getString("address"); 
+                restaurant.city = result.getString("city");
+                restaurant.state = result.getString("state"); 
+                restaurant.zipCode = result.getInt("zipCode"); 
+                restaurant.country = result.getString("country");
+                restaurant.primaryColor = result.getString("primaryColor");
+                restaurant.secondaryColor = result.getString("secondaryColor");
+                //restaurant.menus = Menu.allMenusWithoutItems(restaurant.restaurantID);
+                restaurants.add(restaurant); 
+            }
+        }
+        catch( SQLException e ){
+            System.out.printf("Failed to get the required fields while creating a restaurant Object.\n" + 
+                   "Exception: %s.\n", e.toString() );
+        }
+        return restaurants.toArray( new Restaurant[ restaurants.size() ] );
+    }
+
+
     public static Restaurant restaurantFromJson( String body){
 
         Gson gson = new Gson(); 
