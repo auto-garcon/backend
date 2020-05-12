@@ -80,6 +80,21 @@ public class Main {
     }
 
 
+
+    /**
+     * getTableByAlexaID: gets the table info by alexa ID.
+     * @param Request - alexaID      
+     * @param Response - Response object.  
+     *
+     */
+    public static Object getTableByAlexaID( Request req, Response res ){
+        String alexaID = req.queryParamOrDefault("alexaid", ""); 
+        Table table = Table.tableFromAlexaID( alexaID );
+        table.updateCurrentOrder(); 
+        res.status(200); 
+        return table; 
+    }
+
     /**
      * getTableInfo: gets information about a table 
      * @param Request - Request object. 
@@ -568,11 +583,8 @@ public class Main {
 
         Restaurant[] restaurants = Restaurant.getAllRestaurants();   
         //ResultSet result = DBUtil.getAllRestaurants();
-        JSONObject resp = new JSONObject(); 
-        JSONArray restaurantsJSON = new JSONArray( restaurants );
-        resp.put("numRestaurants", Integer.toString(restaurants.length));
-        resp.put("restaurants", (Object) restaurantsJSON);  
-        res.status(200); 
+        
+        Restaurants resp = new Restaurants( restaurants ); 
         return resp;
     }
 
@@ -840,7 +852,7 @@ public class Main {
 		get("/", Main::serveStatic);
 
         path("/api", () -> {
-
+            post("/tables", "application/json", Main::getTableByAlexaID, new JsonTransformer() ); 
             path("/users", () -> {
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );
                 path("/:userid", () -> {
@@ -881,7 +893,7 @@ public class Main {
                     path("/tables", () -> {
                         get("", Main::getTableInfo, new JsonTransformer() ); 
                         path("/:tablenumber", () -> {
-                            post("/tables/register", "application/json", Main::registerAlexaID ); 
+                            post("/register", "application/json", Main::registerAlexaID ); 
                             path("/order", () -> {
                                 //get("", Main::getOrderByTable, new JsonTransformer() );
                                 post("/new", Main::initializeOrder, new JsonTransformer());
