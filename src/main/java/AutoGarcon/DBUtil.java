@@ -377,7 +377,7 @@ public class DBUtil {
         ResultSet result; 
 
         try{
-            stmt = c.prepareCall("{call CreateNewRestaurant( ?,?,?,?,?,?,?,? )}"); 
+            stmt = c.prepareCall("{call CreateNewRestaurant( ?,?,?,?,?,?,?,?,?,? )}"); 
             stmt.setNString("rName", restaurant.getName() ); 
             stmt.setNString("rDescr", restaurant.getDescription() ); 
             stmt.setNString("rAddress", restaurant.getAddress() ); 
@@ -390,6 +390,7 @@ public class DBUtil {
             stmt.setNString("sColor", restaurant.getSecondaryColor() ); 
 
             result = stmt.executeQuery(); 
+            result.next();
             int restaurantID = result.getInt("newRestaurantID"); 
             return true; 
         }
