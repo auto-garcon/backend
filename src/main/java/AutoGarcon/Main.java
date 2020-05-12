@@ -302,13 +302,8 @@ public class Main {
         try{ 
             int userID = Integer.parseInt(req.params(":userid"));
             ArrayList<Order> result = Order.allOrders(userID); 
-            if(result.size() > 0){
-                res.status(200); 
-                return result;
-            } else {
-                res.status(500); 
-                return "Cannot find any orders for this user within 24 hours";
-            }
+            res.status(200); 
+            return result;
         } catch( NumberFormatException nfe ){
             res.status(400); 
             return "Failed to get results from getOrdersWithin24Hours."; 
@@ -723,13 +718,8 @@ public class Main {
         try{ 
             int restaurantID = Integer.parseInt(req.params(":restaurantid"));
             ArrayList<Order> result = Order.allOrdersForRestaurant(restaurantID); 
-            if(result.size() > 0){
-                res.status(200); 
-                return result;
-            } else {
-                res.status(500); 
-                return "Cannot find any orders for this restaurant";
-            }
+            res.status(200); 
+            return result;
         } catch( NumberFormatException nfe ){
             res.status(400); 
             return "Failed to parse restaurantID in getOrdersForRestaurant."; 
@@ -874,7 +864,7 @@ public class Main {
                                 post("/add", Main::addItemToOrder, new JsonTransformer());
                                 get("/submit", Main::submitOrder, new JsonTransformer());
                                 post("/submitfull", Main::submitCompleteOrder, new JsonTransformer());
-                                post("/remove", Main::removeItemFromOrder ); 
+                                post("/remove", Main::removeItemFromOrder, new JsonTransformer()); 
                             });
                         });
                     });
