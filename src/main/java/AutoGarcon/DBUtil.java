@@ -648,6 +648,12 @@ public class DBUtil {
         ResultSet result;
 
         try {
+            for(OrderItem item : order.getOrderItems()){
+                //if any fields are invalid, don't make the order
+                if(item.getMenuItemID() <= 0 || item.getMenuID() == null || item.getMenuID() <= 0 || item.getQuantity() <= 0 || item.getComments() == null) {
+                    return false;
+                }
+            }
             stmt = c.prepareCall( "{call CreateNewOrder(?, ?)}" ); 
             stmt.setInt("tableID", order.getTableID() ); 
             stmt.setInt("customerID", order.getCustomerID()); 

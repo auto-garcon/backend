@@ -140,7 +140,7 @@ public class OrderItem {
         this.price = price;
     }
 
-    public int getMenuID() {
+    public Integer getMenuID() {
         return this.menuID;
     }
 

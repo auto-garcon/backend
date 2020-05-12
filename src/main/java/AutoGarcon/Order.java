@@ -179,7 +179,12 @@ public class Order {
     }
 
     public boolean save(){
-        return DBUtil.saveOrder( this ); 
+        if(this.orderItems.size() > 0){
+            return DBUtil.saveOrder( this ); 
+        } else {
+            //don't save if there are no items in the order
+            return false;
+        }
     }
 
     public boolean initializeOrder(Order order){
@@ -229,11 +234,17 @@ public class Order {
         this.orderItems.add( item );
     }
 
-    public void removeOrderItem( int orderItemID ){
+    public void removeMenuItemFromOrder( int menuItemID ){
+        OrderItem itemToRemove = null;
         for( OrderItem item  : this.orderItems ){
-            if( item.getOrderItemID() == orderItemID ){
-                this.orderItems.remove( item ); 
+            if( item.getMenuItemID() == menuItemID ){
+                itemToRemove = item;
+                break;
             }
+        }
+        //if we found one to remove, remove it
+        if(!(itemToRemove == null)){
+            this.orderItems.remove(itemToRemove);
         }
     }
 
