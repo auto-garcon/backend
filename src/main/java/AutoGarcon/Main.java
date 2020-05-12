@@ -70,12 +70,11 @@ public class Main {
 
     /**
      * serveImage: serve an image file. 
-     * depreciated
      */
     public static Object serveImage( Request req, Response res ){
         res.type("image/webp");
-        String menuItemID = req.params(":menuitemid"); 
-        res.redirect("images/" + menuItemID + ".jpg", 201);
+        String filename = req.params(":filename"); 
+        res.redirect("images/" + filename, 201);
         return "";
     }
 
@@ -676,10 +675,10 @@ public class Main {
         Restaurant restaurant = Restaurant.restaurantFromJson( req.body() ); 
 
         if( !restaurant.isDefault() ){
-            boolean saved = restaurant.save(); 
-            if( saved ){
+            int rid = restaurant.save(); 
+            if( rid != -1 ){
                 res.status(200); 
-                return "Successfully saved new restuarant"; 
+                return rid; 
             }
             else { 
                 res.status(500); 
@@ -802,7 +801,7 @@ public class Main {
     }
 
     /**
-     * saveImage: Handler for /api/images/:menuid/:menuitemid (POST)
+     * saveImage: Handler for /api/image/:filename
      * Saves an image to the server's file system given an image upload. 
      * @param Request - Request object. 
      * @param Response - Response object.  
@@ -812,11 +811,10 @@ public class Main {
     public static Object saveImage( Request req, Response res ){
 
         try{
-            int menuID = Integer.parseInt( req.params(":menuid") ); 
-            int menuItemID = Integer.parseInt( req.params(":menuitemid") ); 
+            String fileName = req.params(":imagename"); 
             InputStream is = req.raw().getPart("uploaded_file").getInputStream();
             req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
-            boolean saved = ImageUtil.saveImage( menuID, menuItemID, is ); 
+            boolean saved = ImageUtil.saveImage( fileName, is ); 
             if( saved ){
                 return "File uploaded";
             }
@@ -852,6 +850,7 @@ public class Main {
 		get("/", Main::serveStatic);
 
         path("/api", () -> {
+            post("/image/:filename", Main::saveImage );  
             post("/tables", "application/json", Main::getTableByAlexaID, new JsonTransformer() ); 
             path("/users", () -> {
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );

@@ -371,7 +371,7 @@ public class DBUtil {
      * @return true if the restaurant was saved to the database correctly. 
      * false if otherwise. 
      */
-    public static boolean saveRestaurant( Restaurant restaurant ){
+    public static int saveRestaurant( Restaurant restaurant ){
         Connection c = connectToDB(); 
         CallableStatement stmt; 
         ResultSet result; 
@@ -392,14 +392,14 @@ public class DBUtil {
             result = stmt.executeQuery(); 
             result.next();
             int restaurantID = result.getInt("newRestaurantID"); 
-            return true; 
+            return restaurantID; 
         }
         catch( SQLException e ) {
             System.out.printf("SQL Exception while executing CreateNewRestaurant.\n" + 
                     "Exception: %s\n", e.toString() 
             );
         }
-        return false; 
+        return -1; 
     }
 
     /**
