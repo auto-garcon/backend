@@ -178,9 +178,9 @@ public class Restaurant {
         return this.restaurantName.equals("Default Restaurant"); 
     }
 
-    public boolean save(){
-        return DBUtil.saveRestaurant( this ); 
-        // save logo. 
+    public int save(){
+        this.restaurantID = DBUtil.saveRestaurant( this ); 
+        return this.restaurantID;
     }
 
     public int getRestaurantID() {

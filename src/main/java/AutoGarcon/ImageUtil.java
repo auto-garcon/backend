@@ -22,21 +22,17 @@ import com.google.gson.JsonPrimitive;
 public class ImageUtil { 
 
 
-    public static final String basePath = "./../src/main/images/";
+    public static final String basePath = "images/";
 
 
     /**
      * saveImage: Saves an image file to the server given an input stream.
-     *
-     * @param menuID - the menuID of the image to be saved. 
-     * @param menuItemID - the menuItemID of the image to be saved. 
+     * @param filename - the name to give the file. 
      * @param is - an InputStream of image bytes. 
      * @return True if saved correctly, false otherwise. 
      */
-    public static boolean saveImage( int menuID, int menuItemID, InputStream is ){
-        String path = String.format( basePath + "/%d.jpg",  menuItemID );
-        createMenuFolder( menuID ); 
-
+    public static boolean saveImage( String filename,  InputStream is ){
+        String path = String.format( basePath + filename );
         File f = new File( path ); 
 
         try{
@@ -56,7 +52,7 @@ public class ImageUtil {
      * @param bytes - the bytes of the image to be saved. 
      * @return File - The image file that was saved to the filesystem.
      *
-     * @deprecitaed 
+     * @Deprecitaed 
      */
     public static File saveImage( int menuID, int menuItemID, byte[] bytes ){
 
