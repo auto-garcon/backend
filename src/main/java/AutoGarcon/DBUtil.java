@@ -51,6 +51,35 @@ public class DBUtil {
         return result;
     }
 
+    /**
+     * createRestaurantTable: creates a restaurant table by restaurantID and tableNum
+     * @param restaurantID the identifier of the restaurant
+     * @param tableNum the number of the table (non-unique)
+     * @return Boolean value that provides whether or not the data was successfully saved 
+     */
+    public static boolean createRestaurantTable( int restaurantID, int tableNum ){
+
+        ResultSet result = null;
+        Connection c = connectToDB();
+        CallableStatement stmt;
+
+        try{
+            stmt = c.prepareCall("{call CreateRestaurantTable(?, ?, ?)}"); 
+            stmt.setNString("alexaID", null );
+            stmt.setInt("tableNumber", tableNum);
+            stmt.setInt("restaurantID", restaurantID);
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+
+        } catch( SQLException e ){
+            System.out.printf("Failed to exectue CreateRestaurantTable stored procedure.\n" +
+                    "Exception: " + e.toString() );
+            return false;
+        }
+
+        return true;
+    }
+
 
     /**
      * getTable: gets the table info by alexaID. 

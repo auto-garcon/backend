@@ -78,6 +78,42 @@ public class Main {
         return "";
     }
 
+    /**
+     * createRestaurantTables: Handler for api/restaurant/:restaurantid/tables/create?numtables
+     * Creates rows in the database for each table the restaurant has.
+     * @param Request - numTables      
+     * @param Response - Response object.  
+     *
+     */
+    public static Object createRestaurantTables( Request req, Response res ){
+        //get numTables from body of request
+        int restaurantID = Integer.parseInt(req.params(":restaurantid"));
+        String numTablesAsString = req.queryParamOrDefault("numtables", "");
+        Integer numTables;
+        if(numTablesAsString != ""){
+            numTables = Integer.parseInt(numTablesAsString);
+        } else {
+            res.status(500);
+            return "No numtables provided in the query parameters";
+        }
+        boolean success = true;
+        //validate numTables
+        if(!(numTables == null) && numTables <= 100 && numTables > 0){
+            for(int i=1; i<=numTables; i++){
+                success = DBUtil.createRestaurantTable(restaurantID, i);
+                if(!success){
+                    res.status(500);
+                    return "Failed to save restaurant table";
+                }
+            }
+            res.status(200);
+            return "Successfully created restaurant tables";
+        } else {
+            res.status(500);
+            return "Invalid numtables provided in the query parameters";
+        }
+    }
+
 
 
     /**
@@ -890,7 +926,8 @@ public class Main {
                         });
                     });
                     path("/tables", () -> {
-                        get("", Main::getTableInfo, new JsonTransformer() ); 
+                        get("", Main::getTableInfo, new JsonTransformer() );
+                        post("/create", Main::createRestaurantTables, new JsonTransformer());
                         path("/:tablenumber", () -> {
                             post("/register", "application/json", Main::registerAlexaID ); 
                             path("/order", () -> {
