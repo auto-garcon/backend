@@ -147,7 +147,8 @@ public class Main {
     public static Object registerAlexaID( Request req, Response res ){
 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
-        int tableNumber = Integer.parseInt(req.queryParamOrDefault("tablenumber", "-1")); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
+
 
         String alexaID = req.attribute( "alexaID" ); 
         Table table = Table.tableFromTableID( restaurantID, tableNumber ); 
@@ -851,7 +852,7 @@ public class Main {
 
         path("/api", () -> {
             post("/image/:filename", Main::saveImage );  
-            post("/tables", "application/json", Main::getTableByAlexaID, new JsonTransformer() ); 
+            get("/tables", "application/json", Main::getTableByAlexaID, new JsonTransformer() ); 
             path("/users", () -> {
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );
                 path("/:userid", () -> {
