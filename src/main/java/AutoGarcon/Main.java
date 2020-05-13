@@ -927,7 +927,7 @@ public class Main {
                     });
                     path("/tables", () -> {
                         get("", Main::getTableInfo, new JsonTransformer() );
-                        post("/create", Main::createRestaurantTables, new JsonTransformer());
+                        get("/create", Main::createRestaurantTables, new JsonTransformer());
                         path("/:tablenumber", () -> {
                             post("/register", "application/json", Main::registerAlexaID ); 
                             path("/order", () -> {
