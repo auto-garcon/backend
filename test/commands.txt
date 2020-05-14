@@ -5,3 +5,4 @@ curl -X POST -H "Content-Type: application/json" -d @./test/user1.json http://lo
 curl -X GET https://autogarcon.live/api/images/48/75
 curl -X POST -H "Content-Type: application/json" -d @./test/restaurant1.json http://localhost/api/restaurant/add
 curl -X POST -d @./test/alexaID.json http://localhost/api/restaurant/31/tables/38/register
+curl -X GET http://localhost/api/restaurant/33/tables/create?numtables=10
