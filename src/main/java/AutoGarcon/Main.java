@@ -78,20 +78,62 @@ public class Main {
         return "";
     }
 
+    /**
+     * createRestaurantTables: Handler for api/restaurant/:restaurantid/tables/create?numtables
+     * Creates rows in the database for each table the restaurant has.
+     * @param Request - numTables      
+     * @param Response - Response object.  
+     */
+    public static Object createRestaurantTables( Request req, Response res ){
+        //get numTables from body of request
+        int restaurantID = Integer.parseInt(req.params(":restaurantid"));
+        String numTablesAsString = req.queryParamOrDefault("numtables", "");
+        Integer numTables;
+        if(numTablesAsString != ""){
+            numTables = Integer.parseInt(numTablesAsString);
+        } else {
+            res.status(500);
+            return "No numtables provided in the query parameters";
+        }
+        boolean success = true;
+        //validate numTables
+        if(!(numTables == null) && numTables <= 100 && numTables > 0){
+            for(int i=1; i<=numTables; i++){
+                success = DBUtil.createRestaurantTable(restaurantID, i);
+                if(!success){
+                    res.status(500);
+                    return "Failed to save restaurant table";
+                }
+            }
+            res.status(200);
+            return "Successfully created restaurant tables";
+        } else {
+            res.status(500);
+            return "Invalid numtables provided in the query parameters";
+        }
+    }
+
 
 
     /**
      * getTableByAlexaID: gets the table info by alexa ID.
      * @param Request - alexaID      
      * @param Response - Response object.  
-     *
      */
     public static Object getTableByAlexaID( Request req, Response res ){
         String alexaID = req.queryParamOrDefault("alexaid", ""); 
         Table table = Table.tableFromAlexaID( alexaID );
-        table.updateCurrentOrder(); 
-        res.status(200); 
-        return table; 
+
+        if( table != null ){
+            table.updateCurrentOrder(); 
+            res.status(200); 
+            return table; 
+        }
+        else {
+            res.status(200); 
+            return new Object(); 
+        }
+
     }
 
     /**
@@ -148,7 +190,6 @@ public class Main {
 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
-
 
         String alexaID = req.attribute( "alexaID" ); 
         Table table = Table.tableFromTableID( restaurantID, tableNumber ); 
@@ -600,7 +641,7 @@ public class Main {
 
         if( !user.isDefault() && saved ){
             res.status(200); 
-            return user.getUserID();  
+            return user;  
         } else {
             res.status(500); 
             return "Error receiving User"; 
@@ -609,7 +650,7 @@ public class Main {
 
     /**
      * signIn: Handler for /api/users/signin 
-     * Check if the user is in hte database, and give back the userID. 
+     * Check if the user is in the database, and give back the userID. 
      * @param Request - Request object. 
      * @param Response - Response object.  
      */
@@ -617,7 +658,12 @@ public class Main {
 
         User user = User.userFromJson( req.body() );
         int userID = DBUtil.getUserID( user ); 
-        //System.out.println( user.toString() ); 
+        int restaurantID = DBUtil.getRestaurantUserManages( userID );
+        user.setUserID(userID);
+
+        if( restaurantID != -1 ){
+            user.setRestaurantID(restaurantID);
+        }
 
         if(userID == -1 ){
             return addUser( user, res ); 
@@ -625,7 +671,36 @@ public class Main {
         else {
             res.status(200); 
         }
-        return userID; 
+        return user; 
+    }
+
+    /**
+     * addUserAsManager: Handler for /api/users/addmanager
+     * Adds a user as a manager for a restaurant
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object addUserAsManager( Request req, Response res ){
+
+        User user = User.userFromJson( req.body() );
+        if(user == null){
+            res.status(500);
+            return "Invalid email and/or restaurantID in body of request";
+        }
+        //check if the body was valid
+        if(!(user.getEmail() == null) && !(user.getRestaurantID() == null)){
+            boolean success = DBUtil.addUserAsManager(user);
+            if(success){
+                res.status(200);
+                return "Successfully added user as a manager";
+            } else {
+                res.status(400);
+                return "Failed to add user as a manager";
+            }
+        } else {
+            res.status(500);
+            return "Invalid email and/or restaurantID in body of request";
+        }
     }
 
     /**
@@ -673,11 +748,15 @@ public class Main {
      * @param Response - Response object.  
      */
     public static Object addRestaurant( Request req, Response res ){
+
         Restaurant restaurant = Restaurant.restaurantFromJson( req.body() ); 
+
 
         if( !restaurant.isDefault() ){
             int rid = restaurant.save(); 
             if( rid != -1 ){
+                //create the tables. 
+                restaurant.createTables(); 
                 res.status(200); 
                 return rid; 
             }
@@ -852,8 +931,9 @@ public class Main {
 
         path("/api", () -> {
             post("/image/:filename", Main::saveImage );  
-            get("/tables", "application/json", Main::getTableByAlexaID, new JsonTransformer() ); 
+            get("/tables", Main::getTableByAlexaID, new JsonTransformer() ); 
             path("/users", () -> {
+                post("/addmanager", Main::addUserAsManager, new JsonTransformer());
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );
                 path("/:userid", () -> {
                     get("", Main::endpointNotImplemented );
@@ -891,7 +971,8 @@ public class Main {
                         });
                     });
                     path("/tables", () -> {
-                        get("", Main::getTableInfo, new JsonTransformer() ); 
+                        get("", Main::getTableInfo, new JsonTransformer() );
+                        get("/create", Main::createRestaurantTables, new JsonTransformer());
                         path("/:tablenumber", () -> {
                             post("/register", "application/json", Main::registerAlexaID ); 
                             path("/order", () -> {
