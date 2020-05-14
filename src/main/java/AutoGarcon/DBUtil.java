@@ -108,6 +108,11 @@ public class DBUtil {
     }
 
 
+    /**
+     * getAllTables: Query the database for all of the tables at a particular restaurant. 
+     * @param restaurantID
+     * @return the query results. 
+     */
     public static ResultSet getAllTables( int restaurantID ){
         ResultSet result = null; 
         Connection c = connectToDB(); 

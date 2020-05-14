@@ -741,6 +741,7 @@ public class Main {
      */
     public static Object addRestaurant( Request req, Response res ){
         Restaurant restaurant = Restaurant.restaurantFromJson( req.body() ); 
+        restaurant.createTables(); 
 
         if( !restaurant.isDefault() ){
             int rid = restaurant.save(); 

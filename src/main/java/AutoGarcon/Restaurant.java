@@ -18,7 +18,7 @@ public class Restaurant {
     private int restaurantID;
     private String restaurantName;
     private int[] availableMenus;
-    private transient Table[] restaurantTables;
+    //private transient Table[] restaurantTables;
     private String description; 
     private String address;  
     private String city; 
@@ -161,6 +161,11 @@ public class Restaurant {
     }
 
 
+    /**
+     * restaurantFromJson: deserialize a json payload into a restaurant object. 
+     * @param body
+     * @return Restaurant 
+     */
     public static Restaurant restaurantFromJson( String body){
 
         Gson gson = new Gson(); 
@@ -173,6 +178,18 @@ public class Restaurant {
                     "Request body: %s\n. Exception: %s\n", body, e.toString() );
         }
         return restaurant; 
+    }
+
+
+    /**
+     * createTables: when adding a restaurant to the database, 
+     * create the restaurant tables in the database as well. 
+     */
+    public void createTables(){
+
+        for( int i = 0; i < this.numTables; i++ ){
+            DBUtil.createRestaurantTable( this.restaurantID, i ); 
+        }
     }
 
     public boolean isDefault(){
@@ -190,10 +207,6 @@ public class Restaurant {
 
     public int[] getAvailableMenus() { 
         return this.availableMenus; 
-    }
-
-    public Table[] getRestaurantTables() { 
-        return this.restaurantTables; 
     }
     
     public String getName() {
