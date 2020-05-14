@@ -76,6 +76,7 @@ public class Restaurant {
             this.country = result.getString("country");
             this.primaryColor = result.getString("primaryColor");
             this.secondaryColor = result.getString("secondaryColor");
+            this.salesTax = result.getFloat("salesTax");
             if(withMenus){
                 int currentTime = Main.getCurrentTimestamp();
                 this.menus = Menu.allAvailableMenus(this.restaurantID, currentTime);
