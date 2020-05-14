@@ -587,6 +587,40 @@ public class DBUtil {
         return result;
     }
 
+    /**
+     * getRestaurantUserManages: gets the restaurant id a user manages, -1 if none.
+     * @param userID
+     * @return integer of the restaurant id
+     */
+    public static int getRestaurantUserManages( int userID ) {
+
+        ResultSet result = null; 
+        Connection c = connectToDB(); 
+        CallableStatement stmt;
+
+        try { 
+            stmt = c.prepareCall("{call GetRestaurantsUserManages(?)}" ); 
+            stmt.setInt( "iUserID", userID);  
+
+            result = stmt.executeQuery(); 
+            result.beforeFirst(); 
+
+            boolean hasNext = result.next();
+            int restaurantID = -1;
+            //just grab the first restaurant they manage, if there are any
+            if(hasNext){
+                restaurantID = result.getInt("restaurantID");
+            }
+
+            return restaurantID;
+
+        } catch (SQLException e){
+            System.out.printf("SQL Exception while executing GetMenuItemsByMenuId\n" + 
+                    "Exception: %s\n", e.toString()); 
+        }
+        return -1;
+    }
+
 
 
     /**
@@ -630,16 +664,51 @@ public class DBUtil {
             stmt = c.prepareCall("{call GetUserIdByEmail(?)}" ); 
             stmt.setNString("emailAddress", user.getEmail() );
             result = stmt.executeQuery(); 
-
-            result.next(); 
-            userID = result.getInt("userID"); 
+            
+            boolean hasNext = result.next();
+            if(hasNext){
+                userID = result.getInt("userID"); 
+            } else {
+                userID = -1;
+            }
         }
         catch( SQLException e ){
-            System.out.printf("SQL Exception while executing AddUser.\n" +
+            System.out.printf("SQL Exception while executing GetUserIdByEmail.\n" +
                     "Exception: %s\n", e.toString() );
             userID = -1; 
         }
         return userID; 
+    }
+
+    /**
+     * addUserAsManager: adds a user as a manager for a restaurant
+     *
+     * @param user - user object with an email address and restaurantID set. 
+     */
+    public static boolean addUserAsManager( User user ){
+        ResultSet result = null; 
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        int userID = getUserID(user);
+
+        //invalid user
+        if(userID < 0){
+            return false;
+        }
+
+        try{
+            stmt = c.prepareCall("{call AddManagerToRestaurant(?, ?)}" ); 
+            stmt.setInt("userID", userID );
+            stmt.setInt("restaurantID", user.getRestaurantID());
+            result = stmt.executeQuery(); 
+
+            return true;
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing AddManagerToRestaurant.\n" +
+                    "Exception: %s\n", e.toString() );
+            return false;
+        }
     }
 
 

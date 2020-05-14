@@ -635,7 +635,7 @@ public class Main {
 
         if( !user.isDefault() && saved ){
             res.status(200); 
-            return user.getUserID();  
+            return user;  
         } else {
             res.status(500); 
             return "Error receiving User"; 
@@ -644,7 +644,7 @@ public class Main {
 
     /**
      * signIn: Handler for /api/users/signin 
-     * Check if the user is in hte database, and give back the userID. 
+     * Check if the user is in the database, and give back the userID. 
      * @param Request - Request object. 
      * @param Response - Response object.  
      */
@@ -652,7 +652,9 @@ public class Main {
 
         User user = User.userFromJson( req.body() );
         int userID = DBUtil.getUserID( user ); 
-        //System.out.println( user.toString() ); 
+        int restaurantID = DBUtil.getRestaurantUserManages( userID );
+        user.setUserID(userID);
+        user.setRestaurantID(restaurantID);
 
         if(userID == -1 ){
             return addUser( user, res ); 
@@ -660,7 +662,36 @@ public class Main {
         else {
             res.status(200); 
         }
-        return userID; 
+        return user; 
+    }
+
+    /**
+     * addUserAsManager: Handler for /api/users/addmanager
+     * Adds a user as a manager for a restaurant
+     * @param Request - Request object. 
+     * @param Response - Response object.  
+     */
+    public static Object addUserAsManager( Request req, Response res ){
+
+        User user = User.userFromJson( req.body() );
+        if(user == null){
+            res.status(500);
+            return "Invalid email and/or restaurantID in body of request";
+        }
+        //check if the body was valid
+        if(!(user.getEmail() == null) && !(user.getRestaurantID() == null)){
+            boolean success = DBUtil.addUserAsManager(user);
+            if(success){
+                res.status(200);
+                return "Successfully added user as a manager";
+            } else {
+                res.status(400);
+                return "Failed to add user as a manager";
+            }
+        } else {
+            res.status(500);
+            return "Invalid email and/or restaurantID in body of request";
+        }
     }
 
     /**
@@ -889,6 +920,7 @@ public class Main {
             post("/image/:filename", Main::saveImage );  
             post("/tables", "application/json", Main::getTableByAlexaID, new JsonTransformer() ); 
             path("/users", () -> {
+                post("/addmanager", Main::addUserAsManager, new JsonTransformer());
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );
                 path("/:userid", () -> {
                     get("", Main::endpointNotImplemented );
