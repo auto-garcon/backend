@@ -9,6 +9,7 @@ public class User {
     private String firstName;
     private String lastName;
     private String email;
+    private Integer restaurantID;
 
     public User(int userID, String firstName, String lastName, String email) {
         this.userID = userID;
@@ -46,6 +47,14 @@ public class User {
     public void setLastName(String lastName) {this.lastName = lastName;}
 
     public void setEmail(String email) {this.email = email;}
+    
+    public Integer getRestaurantID() {
+        return this.restaurantID;
+    }
+
+    public void setRestaurantID(int restaurantID) {
+        this.restaurantID = restaurantID;
+    }
 
     public boolean isDefault() {
         if( this.firstName.equals( "Default User" ) ){
