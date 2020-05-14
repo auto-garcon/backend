@@ -42,7 +42,7 @@ public class Order {
      * Used for 1st step in json deserialization. 
      */
     public Order(){
-        this.orderID = -1;
+        //this.orderID = -1;
         this.tableID = -1;
         this.customerID = -1;
         this.orderTime = new Timestamp((long) 0.0);

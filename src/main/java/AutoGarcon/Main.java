@@ -119,7 +119,6 @@ public class Main {
      * getTableByAlexaID: gets the table info by alexa ID.
      * @param Request - alexaID      
      * @param Response - Response object.  
-     *
      */
     public static Object getTableByAlexaID( Request req, Response res ){
         String alexaID = req.queryParamOrDefault("alexaid", ""); 

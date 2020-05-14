@@ -687,7 +687,6 @@ public class DBUtil {
 
     /**
      * addUserAsManager: adds a user as a manager for a restaurant
-     *
      * @param user - user object with an email address and restaurantID set. 
      */
     public static boolean addUserAsManager( User user ){
