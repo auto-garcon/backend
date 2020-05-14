@@ -18,6 +18,7 @@ public class OrderItem {
     private int orderItemID;
     private int menuItemID;
     private Integer menuID;
+    private String itemName;
     private int quantity;
     private String comments;
     private int orderID;
@@ -46,6 +47,7 @@ public class OrderItem {
         try{ 
             this.orderItemID = rs.getInt( "orderItemID" );  
             this.menuItemID = rs.getInt("itemID");
+            this.itemName = DBUtil.getItemNameFromID(this.menuItemID);
             this.quantity = rs.getInt("quantity"); 
             this.comments = rs.getString("comments"); 
             this.price = rs.getFloat("price"); 
@@ -146,6 +148,14 @@ public class OrderItem {
 
     public void setMenuID(int menuID) {
         this.menuID = menuID;
+    }
+
+    public String getItemName() {
+        return this.itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
     }
 
 }
