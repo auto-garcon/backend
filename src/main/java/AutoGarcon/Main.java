@@ -83,7 +83,6 @@ public class Main {
      * Creates rows in the database for each table the restaurant has.
      * @param Request - numTables      
      * @param Response - Response object.  
-     *
      */
     public static Object createRestaurantTables( Request req, Response res ){
         //get numTables from body of request
@@ -120,14 +119,21 @@ public class Main {
      * getTableByAlexaID: gets the table info by alexa ID.
      * @param Request - alexaID      
      * @param Response - Response object.  
-     *
      */
     public static Object getTableByAlexaID( Request req, Response res ){
         String alexaID = req.queryParamOrDefault("alexaid", ""); 
         Table table = Table.tableFromAlexaID( alexaID );
-        table.updateCurrentOrder(); 
-        res.status(200); 
-        return table; 
+
+        if( table != null ){
+            table.updateCurrentOrder(); 
+            res.status(200); 
+            return table; 
+        }
+        else {
+            res.status(200); 
+            return new Object(); 
+        }
+
     }
 
     /**
@@ -183,7 +189,7 @@ public class Main {
     public static Object registerAlexaID( Request req, Response res ){
 
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
-        int tableNumber = Integer.parseInt(req.queryParamOrDefault("tablenumber", "-1")); 
+        int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
 
         String alexaID = req.attribute( "alexaID" ); 
         Table table = Table.tableFromTableID( restaurantID, tableNumber ); 
@@ -654,7 +660,10 @@ public class Main {
         int userID = DBUtil.getUserID( user ); 
         int restaurantID = DBUtil.getRestaurantUserManages( userID );
         user.setUserID(userID);
-        user.setRestaurantID(restaurantID);
+
+        if( restaurantID != -1 ){
+            user.setRestaurantID(restaurantID);
+        }
 
         if(userID == -1 ){
             return addUser( user, res ); 
@@ -739,11 +748,15 @@ public class Main {
      * @param Response - Response object.  
      */
     public static Object addRestaurant( Request req, Response res ){
+
         Restaurant restaurant = Restaurant.restaurantFromJson( req.body() ); 
+
 
         if( !restaurant.isDefault() ){
             int rid = restaurant.save(); 
             if( rid != -1 ){
+                //create the tables. 
+                restaurant.createTables(); 
                 res.status(200); 
                 return rid; 
             }
@@ -918,7 +931,7 @@ public class Main {
 
         path("/api", () -> {
             post("/image/:filename", Main::saveImage );  
-            post("/tables", "application/json", Main::getTableByAlexaID, new JsonTransformer() ); 
+            get("/tables", Main::getTableByAlexaID, new JsonTransformer() ); 
             path("/users", () -> {
                 post("/addmanager", Main::addUserAsManager, new JsonTransformer());
                 post("/signin", "application/json", Main::signIn, new JsonTransformer() );

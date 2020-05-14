@@ -35,13 +35,13 @@ public class DBUtil {
 
         ResultSet result = null;
         Connection c = connectToDB();
-        CallableStatement stmt;
+        Statement stmt;
 
+        String query = String.format("SELECT * FROM AutoGarcon.RestaurantTables " + 
+            "WHERE restaurantID = %d AND tableNumber = %d;", restaurantID, tableNum ); 
         try{
-            stmt = c.prepareCall("{call GetTableID(?, ?)}" ); 
-            stmt.setInt( "rID", restaurantID );
-            stmt.setInt( "tableNum", tableNum );  
-            result = stmt.executeQuery();  
+            stmt = c.createStatement(); 
+            result = stmt.executeQuery(query);  
             result.beforeFirst(); 
             return result; 
         } catch( SQLException e ){
@@ -98,7 +98,7 @@ public class DBUtil {
 
             result = stmt.executeQuery(); 
             result.beforeFirst(); 
-
+            return result; 
         } catch( SQLException e ){
             System.out.printf("Failed to exectue getTablesByAlexaID stored procedure.\n" +
                     "Exception: " + e.toString() );
@@ -108,6 +108,11 @@ public class DBUtil {
     }
 
 
+    /**
+     * getAllTables: Query the database for all of the tables at a particular restaurant. 
+     * @param restaurantID
+     * @return the query results. 
+     */
     public static ResultSet getAllTables( int restaurantID ){
         ResultSet result = null; 
         Connection c = connectToDB(); 
@@ -711,7 +716,6 @@ public class DBUtil {
 
     /**
      * addUserAsManager: adds a user as a manager for a restaurant
-     *
      * @param user - user object with an email address and restaurantID set. 
      */
     public static boolean addUserAsManager( User user ){

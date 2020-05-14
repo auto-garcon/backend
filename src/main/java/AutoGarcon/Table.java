@@ -32,7 +32,7 @@ public class Table {
 
 
     /**
-     * tableFromAlexaID: retreive the table object from the Databse
+     * tableFromTableID: retreive the table object from the Databse
      * based on the specifed restaurantID and table number.. 
      * @param restaurantID
      * @param tableNum
@@ -69,6 +69,11 @@ public class Table {
     }
 
 
+    /**
+     * getAllTables: gets all the tables associated with the restaurant.  
+     * @param restaurantID
+     * @return Table[] - an array of tables at the restaurant. 
+     */
     public static Table[] getAllTables( int restaurantID ){
 
         ArrayList<Table> tables = new ArrayList<Table>();  
@@ -123,15 +128,24 @@ public class Table {
     }
 
 
+    /**
+     * updateCurrentOrder: updates the currentOrder field 
+     * by getting the order for this table from the table tracker. 
+     */
     public void updateCurrentOrder(){
         OrderTracker tracker = OrderTracker.getInstance();  
         this.currentOrder = tracker.getOrder( this.restaurantID, this.tableNumber ); 
     }
 
 
+    /**
+     * getCurrentOrder: get the current order for this table. 
+     */
     public Order getCurrentOrder(){
         OrderTracker tracker = OrderTracker.getInstance();  
-        return tracker.getOrder( this.restaurantID, this.tableNumber ); 
+        Order order = tracker.getOrder( this.restaurantID, this.tableNumber );
+        //System.out.println(order.toString() ); 
+        return order;  
     }
 
 
