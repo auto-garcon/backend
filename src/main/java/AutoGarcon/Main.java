@@ -3,6 +3,7 @@ package AutoGarcon;
 import static spark.Spark.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONException;
 import spark.Request;
 import spark.Response;
 import java.io.InputStream;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException; 
 import javax.servlet.http.HttpServletResponse; 
+import com.google.gson.Gson;
 
 
 /**
@@ -191,11 +193,26 @@ public class Main {
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber")); 
 
-        String alexaID = req.attribute( "alexaID" ); 
-        Table table = Table.tableFromTableID( restaurantID, tableNumber ); 
-        table.registerAlexa( alexaID ); 
-        res.status(200); 
-        return "Successfully registered AlexaID";
+        String body = req.body(); 
+        Gson gson = new Gson(); 
+        
+        try{
+
+            JSONObject o = new JSONObject(body);
+            String alexaID = o.getString( "alexaID" ); 
+
+            Table table = Table.tableFromTableID( restaurantID, tableNumber ); 
+            table.registerAlexa( alexaID ); 
+            res.status(200); 
+
+            return "Successfully registered AlexaID";
+        }
+        catch( JSONException e ){
+            System.out.printf("Failed to deserialize the request data.\n" + 
+                    "Request body: %s.\n Exception: %s\n", body, e.toString() );
+            return "Failed to register AlexaID";
+        }
+
     }
 
 
@@ -214,8 +231,9 @@ public class Main {
         int restaurantID = Integer.parseInt(req.params(":restaurantid")); 
         int tableNumber = Integer.parseInt(req.params(":tablenumber"));
         int customerID = -1;
+       
         //check to make sure the request body contains the correct information
-        if(!(order == null)){
+        if( order.getCustomerID() != -1){
             customerID = order.getCustomerID();
         } else {
             res.status(400);

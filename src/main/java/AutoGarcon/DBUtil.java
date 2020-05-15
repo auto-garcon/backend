@@ -148,6 +148,7 @@ public class DBUtil {
             stmt = c.prepareCall("{call RegisterAlexaID(?, ?)}"); 
             stmt.setNString("aID", alexaID); 
             stmt.setInt("tID", tableID); 
+            System.out.printf("tableID: %d, alexaID: %s\n", tableID, alexaID);  
         }
         catch( SQLException e ){
             System.out.printf("Failed to exectue RegisterAlexaID stored procedure.\n" +
