@@ -116,14 +116,12 @@ public class DBUtil {
     public static ResultSet getAllTables( int restaurantID ){
         ResultSet result = null; 
         Connection c = connectToDB(); 
-        Statement stmt; 
-
-        String query = String.format("SELECT * FROM AutoGarcon.RestaurantTables " + 
-                "WHERE restaurantID = %d;", restaurantID ); 
+        CallableStatement stmt; 
 
         try {
-            stmt = c.createStatement(); 
-            result = stmt.executeQuery( query ); 
+            stmt = c.prepareCall("{call GetAllTablesByRestaurant(?)}");
+            stmt.setInt("rID", restaurantID);
+            result = stmt.executeQuery(); 
             result.beforeFirst(); 
         } catch( SQLException e ){
             System.out.printf("Failed to query for tables on restaurantID. \n" +
@@ -148,6 +146,7 @@ public class DBUtil {
             stmt = c.prepareCall("{call RegisterAlexaID(?, ?)}"); 
             stmt.setNString("aID", alexaID); 
             stmt.setInt("tID", tableID); 
+            System.out.printf("tableID: %d, alexaID: %s\n", tableID, alexaID);  
         }
         catch( SQLException e ){
             System.out.printf("Failed to exectue RegisterAlexaID stored procedure.\n" +
@@ -683,6 +682,37 @@ public class DBUtil {
             userID = -1; 
         }
         return userID; 
+    }
+
+    /**
+     * getItemNameFromID: gets a menu item's name by its ID
+     *
+     * @param menuItemID - the ID of the menu item
+     */
+    public static String getItemNameFromID( int menuItemID ){
+        ResultSet result = null; 
+        Connection c = connectToDB(); 
+        CallableStatement stmt; 
+        String itemName = ""; 
+
+        try{
+            stmt = c.prepareCall("{call GetMenuItembyItemId(?)}" ); 
+            stmt.setInt("id", menuItemID );
+            result = stmt.executeQuery(); 
+            
+            boolean hasNext = result.next();
+            if(hasNext){
+                itemName = result.getString("itemName"); 
+            } else {
+                itemName = "";
+            }
+        }
+        catch( SQLException e ){
+            System.out.printf("SQL Exception while executing GetMenuItembyItemId.\n" +
+                    "Exception: %s\n", e.toString() );
+            itemName = "";
+        }
+        return itemName; 
     }
 
     /**
