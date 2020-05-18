@@ -197,22 +197,26 @@ public class Main {
         Gson gson = new Gson(); 
         
         try{
-
             JSONObject o = new JSONObject(body);
             String alexaID = o.getString( "alexaID" ); 
 
             Table table = Table.tableFromTableID( restaurantID, tableNumber ); 
-            table.registerAlexa( alexaID ); 
-            res.status(200); 
+            boolean success = table.registerAlexa( alexaID ); 
 
-            return "Successfully registered AlexaID";
+            if( success ){
+                res.status(200); 
+                return "Successfully registered AlexaID";
+            }
+            else {
+                res.status(400); 
+                return "Failed to register alexaID. Duplicate id?"; 
+            }
         }
         catch( JSONException e ){
             System.out.printf("Failed to deserialize the request data.\n" + 
                     "Request body: %s.\n Exception: %s\n", body, e.toString() );
             return "Failed to register AlexaID";
         }
-
     }
 
 

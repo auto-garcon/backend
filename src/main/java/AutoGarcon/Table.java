@@ -122,9 +122,9 @@ public class Table {
      * registerAlexa : register an AlexaID to a table. 
      * @param alexaID - the base64 alexaID to register
      */
-    public void registerAlexa( String alexaID ){
+    public boolean registerAlexa( String alexaID ){
         this.alexaID = alexaID; 
-        DBUtil.setAlexaIDForTable( this.tableID, alexaID ); 
+        return  DBUtil.setAlexaIDForTable( this.tableID, alexaID ); 
     }
 
 
