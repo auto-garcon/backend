@@ -136,7 +136,7 @@ public class DBUtil {
      * @param tableID - the table to associate with alexa. 
      * @param alexaID - the alexaID to associate with.  
      */
-    public static void setAlexaIDForTable( int tableID, String alexaID ){
+    public static boolean setAlexaIDForTable( int tableID, String alexaID ){
 
         ResultSet result = null;
         Connection c = connectToDB();
@@ -147,10 +147,13 @@ public class DBUtil {
             stmt.setNString("aID", alexaID); 
             stmt.setInt("tID", tableID); 
             System.out.printf("tableID: %d, alexaID: %s\n", tableID, alexaID);  
+            stmt.executeQuery(); 
+            return true; 
         }
         catch( SQLException e ){
             System.out.printf("Failed to exectue RegisterAlexaID stored procedure.\n" +
                     "Exception: " + e.toString() );
+            return false; 
         }
     }
 
