@@ -24,6 +24,7 @@ public class Menu {
     private TimeRange[] timeRanges; 
     private MenuItem[] menuItems;  
     private String menuName; 
+    private String imageURL; 
 
     /**
      * Menu: Constructor to create an empty Menu Class.
@@ -52,6 +53,7 @@ public class Menu {
 
         ResultSet menu = DBUtil.getMenu( menuID, restaurantID ); 
 
+
         if( menu != null ){
             try {
                 this.restaurantID = restaurantID; 
@@ -59,6 +61,7 @@ public class Menu {
                 this.menuName = menu.getString("menuName"); 
                 int statusInt = menu.getInt("menuStatus");
                 this.status = MenuStatus.values()[statusInt];
+                this.imageURL = ImageUtil.getMenuImageURL( this.menuID );
 
                 try {
                     this.timeRanges = new TimeRange[] {
@@ -72,6 +75,7 @@ public class Menu {
                 }
 
                 this.menuItems = MenuItem.menuItems( this.menuID );
+
 
             } catch (SQLException e){
                 System.out.printf("Failed to get the required fields while creating a menu Object.\n" + 
@@ -260,15 +264,6 @@ public class Menu {
     public int getStatus(){
         return this.status.ordinal();
     }
-
-    public String getStartTimes(){
-        return TimeRange.getStartTimeString( this.timeRanges ); 
-    }
-
-    public String getEndTimes(){
-        return TimeRange.getEndTimeString( this.timeRanges ); 
-    }
-
 
     /**
      * isDefault: Checks if this instance of Menu was initalized

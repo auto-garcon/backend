@@ -46,7 +46,6 @@ public class MenuItem {
     public static MenuItem menuItemFromJson( String body, int menuID ) {
         Gson gson = new Gson(); 
         MenuItem item = new MenuItem(); 
-        item.setImageURL( menuID, item.getItemID() ); 
 
         try { 
             item = gson.fromJson( body, MenuItem.class );
@@ -83,7 +82,7 @@ public class MenuItem {
             this.description = rs.getString("description"); 
             this.price = rs.getFloat("price"); 
             this.calories = rs.getInt("calories");
-            this.imageURL = ImageUtil.getImageURL( this.itemID ); 
+            this.imageURL = ImageUtil.getMenuItemImageURL( this.itemID ); 
             
             if( rs.getBoolean("gluten") ){
                 allergens.add( Allergen.GLUTEN );
@@ -180,10 +179,6 @@ public class MenuItem {
         return this.calories; 
     }
 
-    public void setImageURL(int menuID, int itemID) {
-        this.imageURL = ImageUtil.getImageURL(itemID); 
-    }
-
     public int getMenuID() {
         return this.menuID;
     }
@@ -206,11 +201,6 @@ public class MenuItem {
     public void setCalories(int calories) {
         this.calories = calories;
     }
-
-    public String getImageURL() {
-        return this.imageURL;
-    }
-    
 
     @Override 
     public String toString() {
