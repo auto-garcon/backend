@@ -1,4 +1,4 @@
-package AutoGarcon;
+eackage AutoGarcon;
 
 import static spark.Spark.*;
 import org.json.JSONArray;
