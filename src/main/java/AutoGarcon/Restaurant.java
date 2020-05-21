@@ -117,6 +117,7 @@ public class Restaurant {
                 restaurant.primaryColor = result.getString("primaryColor");
                 restaurant.secondaryColor = result.getString("secondaryColor");
                 restaurant.menus = Menu.allMenusWithoutItems(restaurant.restaurantID);
+                restaurant.imageURL = ImageUtil.getRestaurantImageURL( restaurant.restaurantID ); 
                 
                 //add to list
                 list.add(restaurant);
