@@ -1,7 +1,7 @@
 {
-    "menuStatus": "INACTIVE", 
+    "menuStatus": "ACTIVE", 
     "restaurantID": 5,
-    "menuName": "good menu",
+    "menuName": "simple test menu",
     "timeRanges": [
         {
             "startTime": 1100,

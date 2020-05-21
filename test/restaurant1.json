@@ -1,11 +1,13 @@
 {
-    "restaurantName": "test restaurant", 
-    "description":  "this is a json object representing a test restaurant", 
-    "address": "1152 Symphony Lane", 
-    "city": "chaska", 
-    "zipcode": 55318, 
+    "restaurantName": "Demo Restaurant", 
+    "description":  "This is the restaurant used to demo AutoGarcon", 
+    "address": "2115 Summit Avenue", 
+    "city": "St. Paul", 
+    "zipcode": 55105, 
     "state": "MN", 
     "country": "USA", 
     "numTables": 12,
-    "salesTax": 0.2 
+    "salesTax": 0.2, 
+    "primaryColor": "#873030", 
+    "secondaryColor": "#640b0b"
 }

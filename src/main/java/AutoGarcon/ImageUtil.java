@@ -23,7 +23,7 @@ public class ImageUtil {
 
 
     public static final String basePath = "images/";
-    public static final String defaultImage = "images/default.jpg"; 
+
 
 
     /**
@@ -102,7 +102,7 @@ public class ImageUtil {
      */
     public static String getMenuItemImageURL( int menuItemID ){
 
-
+        final String defaultMenuItemImage = "https://autogarcon.live/images/menuitem.jpg"; 
         String path = String.format( "https://autogarcon.live/images/"
                 + "menuitem.%d.jpg",  menuItemID 
         );
@@ -111,7 +111,7 @@ public class ImageUtil {
             return path; 
         }
         else {
-            return defaultImage; 
+            return defaultMenuItemImage; 
         }
     }
 
@@ -121,6 +121,7 @@ public class ImageUtil {
      * @return - The autogarcon url for retreiving the specifed image from the API. 
      */
     public static String getMenuImageURL( int menuID ){
+        final String defaultMenuImage = "https://autogarcon.live/images/menu.jpg"; 
         String path = String.format( "https://autogarcon.live/images/"
                 + "menu.%d.jpg", menuID 
         );
@@ -130,7 +131,7 @@ public class ImageUtil {
             return path; 
         }
         else {
-            return defaultImage; 
+            return defaultMenuImage; 
         }
     }
 
@@ -140,6 +141,8 @@ public class ImageUtil {
      * @return - The autogarcon url for retreiving the specifed image from the API. 
      */
     public static String getRestaurantImageURL( int restaurantID ){
+
+        final String defaultRestaurantImage = "https://autogarcon.live/images/restaurant.jpg"; 
         String path = String.format( "https://autogarcon.live/images/"
                 + "restaurant.%d.jpg", restaurantID 
         );
@@ -149,7 +152,7 @@ public class ImageUtil {
             return path; 
         }
         else {
-            return defaultImage; 
+            return defaultRestaurantImage; 
         }
     }
 

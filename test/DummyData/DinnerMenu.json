@@ -1,10 +1,10 @@
 {
 	"menuStatus": "ACTIVE",
-    "restaurantID": 5, 
+    "restaurantID": 38, 
 	"menuName": "Dinner",
 	"timeRanges": [
         {
-            "start": 1630,
+            "start": 700,
             "end": 2200
 	    }
     ],
