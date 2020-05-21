@@ -461,6 +461,7 @@ public class DBUtil {
             stmt.setInt("startTime", menu.getTimeRanges()[0].getStartTime()); 
             stmt.setInt("endTime", menu.getTimeRanges()[0].getEndTime() );  
 
+            System.out.printf("status int: %d\n", menu.getStatus() ); 
             result = stmt.executeQuery(); 
             result.next(); 
             menuID = result.getInt( "menuID");

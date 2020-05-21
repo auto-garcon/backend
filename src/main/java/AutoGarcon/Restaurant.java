@@ -30,6 +30,7 @@ public class Restaurant {
     private Menu[] menus;
     private int numTables; 
     private float salesTax; 
+    private String imageURL; 
 
 
     /**
@@ -81,6 +82,7 @@ public class Restaurant {
                 int currentTime = Main.getCurrentTimestamp();
                 this.menus = Menu.allAvailableMenus(this.restaurantID, currentTime);
             }
+            this.imageURL = ImageUtil.getRestaurantImageURL(this.restaurantID);
         }
         catch( SQLException e ){
             System.out.printf("Failed to get the required fields while creating a restaurant Object.\n" + 
@@ -306,6 +308,7 @@ public class Restaurant {
     public void setMenus(Menu[] menus) {
         this.menus = menus;
     }
+
     public void setNumTables(int numTables) {
         this.numTables = numTables;
     }

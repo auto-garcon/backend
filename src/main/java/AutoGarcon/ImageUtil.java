@@ -25,13 +25,14 @@ public class ImageUtil {
     public static final String basePath = "images/";
 
 
+
     /**
      * saveImage: Saves an image file to the server given an input stream.
      * @param filename - the name to give the file. 
      * @param is - an InputStream of image bytes. 
      * @return True if saved correctly, false otherwise. 
      */
-    public static boolean saveImage( String filename,  InputStream is ){
+    public static boolean saveImage( String filename, InputStream is ){
         String path = String.format( basePath + filename );
         File f = new File( path ); 
 
@@ -77,6 +78,7 @@ public class ImageUtil {
      * @param menuItemID - itemID of the image to get. 
      *
      * @return File - The image file requested. 
+     * @depreciated
      */
     public static File getImage( int menuID, int menuItemID ) {
 
@@ -98,10 +100,60 @@ public class ImageUtil {
      *
      * @return - The autogarcon url for retreiving the specifed image from the API. 
      */
-    public static String getImageURL( int menuItemID ){
-        return String.format( "https://autogarcon.live/images/"
-                + "%d.jpg",  menuItemID 
+    public static String getMenuItemImageURL( int menuItemID ){
+
+        final String defaultMenuItemImage = "https://autogarcon.live/images/menuitem.jpg"; 
+        String path = String.format( "https://autogarcon.live/images/"
+                + "menuitem.%d.jpg",  menuItemID 
         );
+        File f = new File( path ); 
+        if( f.exists() ){
+            return path; 
+        }
+        else {
+            return defaultMenuItemImage; 
+        }
+    }
+
+    /**
+     * getImageURL: gets the URL where you can download the image. 
+     * @param menuID - the menuID of the image you want a URL for. 
+     * @return - The autogarcon url for retreiving the specifed image from the API. 
+     */
+    public static String getMenuImageURL( int menuID ){
+        final String defaultMenuImage = "https://autogarcon.live/images/menu.jpg"; 
+        String path = String.format( "https://autogarcon.live/images/"
+                + "menu.%d.jpg", menuID 
+        );
+        
+        File f = new File( path ); 
+        if( f.exists() ){
+            return path; 
+        }
+        else {
+            return defaultMenuImage; 
+        }
+    }
+
+    /**
+     * getImageURL: gets the URL where you can download the image. 
+     * @param menuID - the menuID of the image you want a URL for. 
+     * @return - The autogarcon url for retreiving the specifed image from the API. 
+     */
+    public static String getRestaurantImageURL( int restaurantID ){
+
+        final String defaultRestaurantImage = "https://autogarcon.live/images/restaurant.jpg"; 
+        String path = String.format( "https://autogarcon.live/images/"
+                + "restaurant.%d.jpg", restaurantID 
+        );
+
+        File f = new File( path ); 
+        if( f.exists() ){
+            return path; 
+        }
+        else {
+            return defaultRestaurantImage; 
+        }
     }
 
 

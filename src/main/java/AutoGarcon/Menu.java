@@ -19,11 +19,12 @@ public class Menu {
     }
 
     private int menuID; 
-    private MenuStatus status; 
+    private MenuStatus menuStatus; 
     private int restaurantID; 
     private TimeRange[] timeRanges; 
     private MenuItem[] menuItems;  
     private String menuName; 
+    private String imageURL; 
 
     /**
      * Menu: Constructor to create an empty Menu Class.
@@ -34,7 +35,7 @@ public class Menu {
         this.menuID = -1; 
         this.restaurantID = -1; 
         this.menuName = "Default Menu"; 
-        this.status = MenuStatus.INACTIVE;
+        this.menuStatus = MenuStatus.INACTIVE;
         this.timeRanges = new TimeRange[0]; 
         this.menuItems = new MenuItem[0];
     }
@@ -52,13 +53,15 @@ public class Menu {
 
         ResultSet menu = DBUtil.getMenu( menuID, restaurantID ); 
 
+
         if( menu != null ){
             try {
                 this.restaurantID = restaurantID; 
                 this.menuID = menu.getInt( "menuID" );  
                 this.menuName = menu.getString("menuName"); 
                 int statusInt = menu.getInt("menuStatus");
-                this.status = MenuStatus.values()[statusInt];
+                this.menuStatus = MenuStatus.values()[statusInt];
+                this.imageURL = ImageUtil.getMenuImageURL( this.menuID );
 
                 try {
                     this.timeRanges = new TimeRange[] {
@@ -72,6 +75,7 @@ public class Menu {
                 }
 
                 this.menuItems = MenuItem.menuItems( this.menuID );
+
 
             } catch (SQLException e){
                 System.out.printf("Failed to get the required fields while creating a menu Object.\n" + 
@@ -92,7 +96,7 @@ public class Menu {
             this.restaurantID = qresult.getInt("restaurantID"); 
             this.menuID = qresult.getInt("menuID"); 
             int statusInt = qresult.getInt("menuStatus"); 
-            this.status = MenuStatus.values()[statusInt];  
+            this.menuStatus = MenuStatus.values()[statusInt];  
             this.menuName = qresult.getString("menuName");
             this.timeRanges = TimeRange.timeRanges( this.menuID ); 
             if(withItems){
@@ -205,7 +209,6 @@ public class Menu {
 
         try { 
             menu = gson.fromJson( body, Menu.class);
-            //int menuID = menu.menuID;
 
         } catch( JsonSyntaxException e  ){
             System.out.printf("Failed to deserialize the request data into a Menu Object.\n" + 
@@ -258,17 +261,8 @@ public class Menu {
     }
 
     public int getStatus(){
-        return this.status.ordinal();
+        return this.menuStatus.ordinal();
     }
-
-    public String getStartTimes(){
-        return TimeRange.getStartTimeString( this.timeRanges ); 
-    }
-
-    public String getEndTimes(){
-        return TimeRange.getEndTimeString( this.timeRanges ); 
-    }
-
 
     /**
      * isDefault: Checks if this instance of Menu was initalized
@@ -303,7 +297,7 @@ public class Menu {
      */
     @Override
     public String toString(){
-        if (this.status == null ){
+        if (this.menuStatus == null ){
             return  "Empty Menu Object\n";
         }
         StringBuilder str = new StringBuilder();
@@ -311,7 +305,7 @@ public class Menu {
             str.append("menuID: " + Integer.toString(this.menuID) + "\n");   
         }
         str.append("restaurantID: " + Integer.toString( this.restaurantID ) + "\n" );
-        str.append("status: " + this.status.name() + "\n" ); 
+        str.append("status: " + this.menuStatus.name() + "\n" ); 
         str.append("MenuName: " + this.menuName + "\n");
         str.append("Time Ranges:\n");
         for( int i = 0; i < this.timeRanges.length; i++ ){

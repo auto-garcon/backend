@@ -1,27 +1,27 @@
 {
-	"menuStatus": "Active",
+	"menuStatus": "ACTIVE",
 	"menuName": "Lunch",
+    "restaurantID": 38, 
 	"timeRanges":[
         {
-            "startTime": 1100,
+            "startTime": 700,
             "endTime": 2200
         }
     ],
     "numItems": 24,
-    "items": [
+    "menuItems": [
         {
             "category": "Appetizer",
             "name": "Boneless Wings",
             "description": "Crispy boneless wings with styles that go way beyond Buffalo.",
-            "image": "",
-            "allergens": "",
+            "allergens": ["GLUTEN","MEAT","DAIRY"],
             "price": 11.19
         },{
             "category": "Appetizer",
             "name": "Mozzarella Sticks",
             "description": "Mozzarella and Asiago cheese. Sprinkled with Parmesan-Romano. Served with marinara sauce.",
             "image": "",
-            "allergens": "",
+            "allergens": ["GLUTEN","MEAT","DAIRY"],
             "price": 9.28
         },{
             "category": "Appetizer",
@@ -59,91 +59,91 @@
             "allergens": [],
             "price": 11.19
         },{
-            "category": "Chicken,Seafood & Pasta",
-            "name": "Cajun Shrimp & Chicken Pasta",
+            "category": "Chicken,Seafood and Pasta",
+            "name": "Cajun Shrimp and Chicken Pasta",
             "description": "Sauteed chicken, shrimp, red bell peppers in a spicy Cajun Alfredo sauce, Parmesan-Romano and fettuccine. Served with a warm garlic breadstick.",
             "image": "",
             "allergens": [],
             "price": 15.49
         },{
-            "category": "Chicken,Seafood & Pasta",
+            "category": "Chicken,Seafood and Pasta",
             "name": "Chicken Parmesan Pasta",
             "description": "Crispy chicken breast with marinara and cheese on fettuccine Alfredo. Topped with Parmesan crisps. Served with a warm garlic breadstick.",
             "image": "",
             "allergens": [],
             "price": 15.49
         },{
-            "category": "Chicken,Seafood & Pasta",
+            "category": "Chicken,Seafood and Pasta",
             "name": "Signature Whiskey-Glazed Chicken",
             "description": "Signature Whiskey-Glaze over two grilled chicken breasts. Served with mashed potatoes and lemon-butter broccoli.",
             "image": "",
             "allergens":[],  
             "price": 15.99
         },{
-            "category": "Chicken,Seafood & Pasta",
+            "category": "Chicken,Seafood and Pasta",
             "name": "Crispy Chicken Tenders",
             "description": "Crispy fried chicken tenders served with coleslaw, seasoned fries and Honey Mustard dressing.",
             "image": "",
             "allergens":[], 
             "price": 13.39
         },{
-            "category": "Chicken,Seafood & Pasta",
+            "category": "Chicken,Seafood and Pasta",
             "name": "Fried Shrimp",
             "description": "Crispy shrimp with cocktail sauce. Served with coleslaw and seasoned fries.",
             "image": "",
             "allergens":[], 
             "price": 15.29
         },{
-            "category": "Chicken,Seafood & Pasta",
-            "name": "Fish & Chips",
+            "category": "Chicken,Seafood and Pasta",
+            "name": "Fish and Chips",
             "description": "Beer-battered golden cod fillets served with seasoned fries, coleslaw, tartar sauce and a lemon wedge.",
             "image": "",
             "allergens": [],  
             "price": 15.29
         },{
-            "category": "Steak & Ribs",
+            "category": "Steak and Ribs",
             "name": "Big Ribs Whiskey-Glazed",
             "description": "Full-rack of slow-cooked, fall-off-the-bone tender big back pork ribs basted with Signature Whiskey Glaze fire-grilled and served with seasoned fries and coleslaw.",
             "image": "",
             "allergens": [],
             "price": 23.19
         },{
-            "category": "Steak & Ribs",
+            "category": "Steak and Ribs",
             "name": "Center-Cut Serloin",
             "description": "6 ounces of flavorful center-cut sirloin topped with Parmesan Butter. Served with mashed potatoes and lemon-butter broccoli.",
             "image": "",
             "allergens": [],
             "price": 13.89
         },{
-            "category": "Steak & Ribs",
-            "name": "Center-Cut Sirloin & Crispy Shrimp",
+            "category": "Steak and Ribs",
+            "name": "Center-Cut Sirloin and Crispy Shrimp",
             "description": "6 ounces of flavorful center-cut sirloin topped with Parmesan Butter and crispy fried shrimp with cocktail sauce. Served with mashed potatoes and lemon-butter broccoli.",
             "image": "",
             "allergens": [],  
             "price": 16.48
         },{
-            "category": "Salads & Soups",
+            "category": "Salads and Soups",
             "name": "White Cheddar Broccoli Cheese Soup",
             "description": "A creamy blend of white cheddar cheeses with broccoli.",
             "image": "",
             "allergens": [], 
             "price": 5.19
         },{
-            "category": "Salads & Soups",
+            "category": "Salads and Soups",
             "name": "Caesar Salad With Grilled Chicken",
             "description": "Grilled chicken, romaine, Parmesan-Romano, Caesar dressing, Asiago croutons and Parmesan crisps.",
             "image": "",
             "allergens":[] ,
             "price": 11.39
         },{
-            "category": "Salads & Soups",
+            "category": "Salads and Soups",
             "name": "Caesar Salad",
             "description": "Romaine, Parmesan-Romano, Caesar dressing, Asiago croutons and Parmesan crisps. Served with a warm garlic breadstick.",
             "image": "",
             "allergens": [],
             "price": 5.19
         },{
-            "category": "Salads & Soups",
+            "category": "Salads and Soups",
             "name": "House Salad",
             "description": "Mixed greens, sliced carrots, red cabbage, tomatoes, cucumber, mixed cheese and Asiago croutons with choice of dressing on the side and a warm garlic breadstick.",
             "image": "",
