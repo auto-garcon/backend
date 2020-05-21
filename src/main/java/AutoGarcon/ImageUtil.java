@@ -103,12 +103,13 @@ public class ImageUtil {
     public static String getMenuItemImageURL( int menuItemID ){
 
         final String defaultMenuItemImage = "https://autogarcon.live/images/menuitem.jpg"; 
-        String path = String.format( "https://autogarcon.live/images/"
+        String url = String.format( "https://autogarcon.live/images/"
                 + "menuitem.%d.jpg",  menuItemID 
         );
+        String path = String.format( "src/main/resources/public/images/menuitem.%d.jpg", menuItemID );
         File f = new File( path ); 
         if( f.exists() ){
-            return path; 
+            return url; 
         }
         else {
             return defaultMenuItemImage; 
@@ -122,13 +123,14 @@ public class ImageUtil {
      */
     public static String getMenuImageURL( int menuID ){
         final String defaultMenuImage = "https://autogarcon.live/images/menu.jpg"; 
-        String path = String.format( "https://autogarcon.live/images/"
+        String url = String.format( "https://autogarcon.live/images/"
                 + "menu.%d.jpg", menuID 
         );
-        
+        String path = String.format( "src/main/resources/public/images/menu.%d.jpg", menuID );
+
         File f = new File( path ); 
         if( f.exists() ){
-            return path; 
+            return url; 
         }
         else {
             return defaultMenuImage; 
@@ -143,13 +145,16 @@ public class ImageUtil {
     public static String getRestaurantImageURL( int restaurantID ){
 
         final String defaultRestaurantImage = "https://autogarcon.live/images/restaurant.jpg"; 
-        String path = String.format( "https://autogarcon.live/images/"
+        String url = String.format( "https://autogarcon.live/images/"
                 + "restaurant.%d.jpg", restaurantID 
         );
 
+        String path = String.format( "src/main/resources/public/images/restaurant.%d.jpg", restaurantID);
+
         File f = new File( path ); 
+
         if( f.exists() ){
-            return path; 
+            return url; 
         }
         else {
             return defaultRestaurantImage; 
