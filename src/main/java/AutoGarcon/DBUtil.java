@@ -788,6 +788,7 @@ public class DBUtil {
             for(OrderItem item : order.getOrderItems()){
                 //if any fields are invalid, don't make the order
                 if(item.getMenuItemID() <= 0 || item.getMenuID() == null || item.getMenuID() <= 0 || item.getQuantity() <= 0 || item.getComments() == null) {
+                    System.out.println("MenuID, MenuItemID, quantity, or comments are null, cannot save order"); 
                     return false;
                 }
             }
