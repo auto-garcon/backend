@@ -1,3 +1,8 @@
 {
-    "customerID": 1
+    "menuItemID": 449, 
+    "itemName": "cheesepuffs",
+    "menuID": 110, 
+    "quantity": 2, 
+    "comments": "no comment",
+    "price": 12.3
 }
